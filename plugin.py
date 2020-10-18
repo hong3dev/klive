@@ -382,3 +382,10 @@ def xmltv_php(source):
     if SystemModelSetting.get_bool('auth_use_apikey'):
         url += '?apikey=%s' % SystemModelSetting.get('auth_apikey') 
     return redirect(url)
+
+
+@blueprint.route('<source>/login')
+def login():
+    logger.debug('xtream codes login : %s', source)
+    logger.debug(request.args)
+    return jsonify('')
