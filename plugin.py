@@ -198,6 +198,16 @@ def ajax(sub):
         elif sub == 'wavve_credential_reset':
             ModelSetting.set('wavve_credential', '')
             return jsonify(True)
+        elif sub == 'get_logindata':
+            site = request.form['site']
+            ret = ''
+            if site == 'wavve':
+                ret = ModelSetting.get('wavve_credential')
+            elif site == 'tving':
+                if 'tving' in LogicKlive.source_list and LogicKlive.source_list['tving'] is not None:
+                    ret = LogicKlive.source_list['tving'].login_data
+            return jsonify(ret)
+
     except Exception as e: 
         logger.error('Exception:%s', e)
         logger.error(traceback.format_exc())

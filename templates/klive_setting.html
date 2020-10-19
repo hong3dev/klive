@@ -25,7 +25,7 @@
       <div id="use_wavve_div" class="collapse">
         {{ macros.setting_input_text('wavve_id', '웨이브 ID', col='3', value=arg['wavve_id']) }}
         {{ macros.setting_input_text('wavve_pw', '웨이브 PW', col='3', value=arg['wavve_pw'], type='password') }}
-        {{ macros.setting_button_with_info([['wavve_credential_reset_btn', '초기화']], left='웨이브 계정값', desc=['저장된 계정값은 ID/PW 변경 입력하더라도 바로 적용되지 않습니다. 계정변경시 초기화 시켜주세요.']) }}
+        {{ macros.setting_button_with_info([['wavve_credential_reset_btn', '초기화'], ['get_wavve_logindata_btn', '로그인 정보 확인']], left='웨이브 계정값', desc=['저장된 계정값은 ID/PW 변경 입력하더라도 바로 적용되지 않습니다. 계정변경시 초기화 시켜주세요.']) }}
         {{ macros.setting_select('wavve_quality', '웨이브 화질', [['FHD','FHD'], ['HD','HD'], ['SD', 'SD']], col='3', value=arg['wavve_quality'])}}
         {{ macros.setting_radio('wavve_streaming_type', 'Wavve 스트리밍 타입', ['직접연결', 'SJVA사용', 'Redirect'], value=arg['wavve_streaming_type'], desc=['웨이브는 방송 요청을 한 IP와 Player IP가 일치해야만 합니다.', 'Redirect : 가장 좋습니다만 Player에 따라 10분 후 중지될 수 있습니다.', '중지가 안된다면 이 방법으로 사용하세요. 동일 네트워크의 Tvheadend에 연결할 때 사용합니다.', '직접연결 : SJVA와 Player가 동일 네트워크 일 때 사용합니다. SJVA사용 옵션보다 성능이 좋습니다.', 'SJVA사용 : 타 네트워크에서 재생할 때 사용합니다. SJVA가 방송 데이터를 받아서 Player에 보냅니다.']) }}
         {{ macros.setting_checkbox('wavve_use_proxy', 'Proxy 사용', value=arg['wavve_use_proxy'], desc=['외국에서 시청 불가능합니다. 국내 IP로 인식할 수 있는 Proxy가 있는 경우, Proxy와 SJVA사용 옵션을 통해 시청가능합니다.', '티빙과는 다르게 매 패킷마다 IP 체크를 합니다.']) }}
@@ -40,6 +40,7 @@
       <div id="use_tving_div" class="collapse">
         {{ macros.setting_input_text('tving_id', '티빙 ID', col='3', value=arg['tving_id']) }}
         {{ macros.setting_input_text('tving_pw', '티빙 PW', col='3', value=arg['tving_pw'], type='password') }}
+        {{ macros.setting_button_with_info([['get_tving_logindata_btn', '로그인 정보 확인']], left='', desc=None) }}
         {{ macros.setting_select('tving_quality', '티빙 화질', [['FHD','FHD'], ['HD','HD'], ['SD', 'SD']], col='3', value=arg['tving_quality'])}}
         {{ macros.setting_checkbox('tving_use_proxy', 'Proxy 사용', value=arg['tving_use_proxy'], desc=['외국에서 시청 불가능합니다. 국내 IP로 인식할 수 있는 Proxy 주소를 입력합니다.', '방송 URL을 얻을 때만 사용하고 그 URL을 연결한 이후에는 IP 체크를 하지 않아 트래픽 부담 없이 이용할 수 있습니다.', '다만 국내IP를 판단하는 기준이 까다로워 국내리전 VPS 들도 해외접속으로 처리됩니다.']) }}
         {{ macros.setting_input_text('tving_proxy_url', 'Proxy URL', value=arg['tving_proxy_url'], desc=['참고 : https://www.proxynova.com/proxy-server-list/country-kr']) }}
@@ -197,6 +198,32 @@ $("body").on('click', '#wavve_credential_reset_btn', function(e){
     }
   });
 });
+
+
+$("body").on('click', '#get_tving_logindata_btn', function(e){
+  e.preventDefault();
+  get_logindata('tving');
+});
+
+$("body").on('click', '#get_wavve_logindata_btn', function(e){
+  e.preventDefault();
+  get_logindata('wavve');
+});
+
+function get_logindata(site) {
+  $.ajax({
+    url: '/' + package_name + '/ajax/get_logindata',
+    type: "POST", 
+    cache: false,
+    data:{site:site},
+    dataType: "json",
+    success: function (data) {
+      document.getElementById("modal_title").innerHTML = "로그인 정보";
+      document.getElementById("modal_body").innerHTML = "<pre>"+data + "</pre>";
+      $("#large_modal").modal();
+    }
+  });
+}
 
 
 
