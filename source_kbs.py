@@ -18,7 +18,7 @@ import threading
 # 패키지
 from .plugin import logger, package_name
 from .model import ModelSetting, ModelChannel
-from source_base import SourceBase
+from .source_base import SourceBase
 
 #########################################################
 

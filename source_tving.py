@@ -17,7 +17,7 @@ from framework import app, db, scheduler, path_app_root, path_data
 # 패키지
 from .plugin import logger, package_name
 from .model import ModelSetting, ModelChannel
-from source_base import SourceBase
+from .source_base import SourceBase
 import framework.tving.api as Tving
 
 #########################################################
@@ -76,14 +76,14 @@ class SourceTving(SourceBase):
     def get_return_data(cls, source_id, url, mode):
         try:
 
-            data = requests.get(url).content
+            data = requests.get(url).text
             #logger.debug(data)
             temp = url.split('playlist.m3u8')
             rate = ['chunklist_b5128000.m3u8', 'chunklist_b1628000.m3u8', 'chunklist_b1228000.m3u8', 'chunklist_b1128000.m3u8', 'chunklist_b628000.m3u8', 'chunklist_b378000.m3u8']
             for r in rate:
                 if data.find(r) != -1:
                     url1 = '%s%s%s' % (temp[0], r, temp[1])
-                    data1 = requests.get(url1).content
+                    data1 = requests.get(url1).text
                     data1 = data1.replace('media', '%smedia' % temp[0]).replace('.ts', '.ts%s' % temp[1])
                     #logger.debug(data1)
                     if mode == 'web_play':
@@ -166,7 +166,7 @@ class SourceTving(SourceBase):
             tree = ET.ElementTree(root)
             ret = ET.tostring(root, pretty_print=True, xml_declaration=True, encoding="utf-8")
             return data, ret
-        except Exception, e:
+        except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())  
 
@@ -184,6 +184,6 @@ class SourceTving(SourceBase):
             # 이건 vod
             data, url = Tving.get_episode_json(c_id, quality, cls.login_data, proxy=proxy)
             return redirect(url, code=302)
-        except Exception, e:
+        except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())  

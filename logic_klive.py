@@ -11,7 +11,6 @@ import re
 import json
 import requests
 import urllib
-import urllib2
 import lxml.html
 import threading
 from enum import Enum
@@ -226,7 +225,7 @@ class LogicKlive(object):
     @staticmethod
     def get_url(source, source_id, quality, mode):
         try:
-            from logic import Logic
+            from .logic import Logic
             if LogicKlive.source_list is None:
                 LogicKlive.channel_load_from_site()
             if quality is None or quality == 'default':

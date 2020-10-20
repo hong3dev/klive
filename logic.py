@@ -11,7 +11,6 @@ import re
 import json
 import requests
 import urllib
-import urllib2
 import lxml.html
 import threading
 from enum import Enum
@@ -108,7 +107,7 @@ class Logic(object):
     def plugin_load():
         try:
             Logic.db_init()
-            from plugin import plugin_info
+            from .plugin import plugin_info
             Util.save_from_dict_to_json(plugin_info, os.path.join(os.path.dirname(__file__), 'info.json'))   
 
             def func():

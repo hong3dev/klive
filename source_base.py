@@ -5,13 +5,12 @@ import os
 import sys
 import logging
 import re
-import urllib
 
 # third-party
 
 # sjva 공용
 from framework.logger import get_logger
-from framework import app, db, scheduler, path_app_root, SystemModelSetting
+from framework import app, db, scheduler, path_app_root, SystemModelSetting, py_urllib
 
 # 패키지
 from .model import ModelSetting
@@ -55,7 +54,7 @@ class SourceBase:
             tmp = re.compile(r'http(.*?)$', re.MULTILINE).finditer(data)
             for m in tmp:
                 u = m.group(0)
-                u2 = '{ddns}/{package_name}/api/redirect?url={url}'.format(ddns=SystemModelSetting.get('ddns'), package_name=package_name, url=urllib.quote(u))
+                u2 = '{ddns}/{package_name}/api/redirect?url={url}'.format(ddns=SystemModelSetting.get('ddns'), package_name=package_name, url=py_urllib.quote(u))
                 if SystemModelSetting.get_bool('auth_use_apikey'):
                     u2 += '&apikey={apikey}'.format(apikey=SystemModelSetting.get('auth_apikey'))
                 if proxy is not None:

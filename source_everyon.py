@@ -6,8 +6,6 @@ import sys
 import logging
 import traceback
 import json
-import urllib
-import urllib2
 import ssl
 import datetime
 import xml.etree.ElementTree as ET
@@ -18,12 +16,12 @@ from sqlitedict import SqliteDict
 import requests
 # sjva 공용
 from framework.logger import get_logger
-from framework import app, db, scheduler, path_app_root, path_data
+from framework import app, db, scheduler, path_app_root, path_data, py_urllib, py_urllib2
 from system.logic import SystemLogic
 
 # 패키지
 from .model import ModelSetting, ModelChannel
-from source_base import SourceBase
+from .source_base import SourceBase
 
 # 로그
 package_name = __name__.split('.')[0]
@@ -77,10 +75,10 @@ class SourceEveryon(SourceBase):
     def GetChannelListFromCate(cls, cate, pageNo='1'):
         url  = 'http://www.hcnmobile.tv/main/proc/ajax_ch_list.php'
         params = { 'chNum' : '', 'cate':'', 'sCate':cate, 'chNum':'', 'chNm':'', 'page':pageNo, 'perPage':'20', 'srchTxt':''  }
-        postdata = urllib.urlencode( params )
-        request = urllib2.Request(url, postdata)
+        postdata = py_urllib.urlencode( params )
+        request = py_urllib2.Request(url, postdata)
         request.add_header('Cookie', 'etv_api_key=88abc0e1c8e61c8c3109788ec8392c7fd86c16765fc0b80d5f2366c84c894203')
-        response = urllib2.urlopen(request)
+        response = py_urllib2.urlopen(request)
         data = response.read()
         hasMore = 'Y' if int(data.split('|')[1]) > int(pageNo) * 20 else 'N'
         regax = 'thumb\"\stitle\=\"(.*?)\".*\s*.*selCh\(\'(.*?)\'.*\s*<img\ssrc\=\"(.*?)\"'
@@ -109,10 +107,10 @@ class SourceEveryon(SourceBase):
         try:
             url  = 'http://www.hcnmobile.tv/main/proc/get_ch_data.php'
             params = { 'chId' : source_id }
-            postdata = urllib.urlencode( params )
-            request = urllib2.Request(url, postdata)
+            postdata = py_urllib.urlencode( params )
+            request = py_urllib2.Request(url, postdata)
             request.add_header('Cookie', 'etv_api_key=88abc0e1c8e61c8c3109788ec8392c7fd86c16765fc0b80d5f2366c84c894203')
-            response = urllib2.urlopen(request)
+            response = py_urllib2.urlopen(request)
             data = json.load(response, encoding='utf8')
             #url2 = data['medias'][0]['url'] if len(data['medias']) > 0 else None	
             url2 = data['media']['url'].replace('\\','')
@@ -121,8 +119,8 @@ class SourceEveryon(SourceBase):
             cookie = response.info().getheader('Set-Cookie')
             if cookie is None:
                 # 종편
-                req = urllib2.Request(url2)
-                res = urllib2.urlopen(req)
+                req = py_urllib2.Request(url2)
+                res = py_urllib2.urlopen(req)
                 data = res.read()
                 match = re.compile(r'chunklist(?P<tmp>.*?)$').search(data)
                 if match:
@@ -163,8 +161,8 @@ class SourceEveryon(SourceBase):
             pre = '/'.join ( tmps[0].split('/')[:-1]) + '/'
             post = tmps[1]
 
-            req = urllib2.Request(url)
-            res = urllib2.urlopen(req)
+            req = py_urllib2.Request(url)
+            res = py_urllib2.urlopen(req)
             data = res.read()
             #logger.debug(data)
             #index_list = ['index_576p30.m3u8', 'index_hd.m3u8']
@@ -173,8 +171,8 @@ class SourceEveryon(SourceBase):
                 url = url.replace('index.m3u8', 'index_576p30.m3u8')
                 url = url.replace('index.m3u8', 'index_hd.m3u8')
                 
-                req = urllib2.Request(url)
-                res = urllib2.urlopen(req)
+                req = py_urllib2.Request(url)
+                res = py_urllib2.urlopen(req)
                 data = res.read()
                 #logger.debug(data)
                 data = re.sub('index_576p30', pre+'index_576p30', data)
@@ -194,8 +192,8 @@ class SourceEveryon(SourceBase):
                 logger.debug('YYYYYYYYYYYYYYYYYYYYYYYYYY')
                 match = re.search('http(.*?)$' ,data)
                 if match:
-                    req = urllib2.Request(match.group(0))
-                    res = urllib2.urlopen(req)
+                    req = py_urllib2.Request(match.group(0))
+                    res = py_urllib2.urlopen(req)
                     data = res.read()
                     result = re.compile('(.*?)\.ts').findall(data)
                     for r in result:
@@ -234,7 +232,6 @@ class SourceEveryon(SourceBase):
 				else:
 					continue
 
-			print('EVERYON %s / %s make EPG' % (count, len(list)))
 			str += '\t<channel id="EVERYON|%s" video-src="%slc&type=EVERYON&id=%s" video-type="HLS">\n' % (item['id'], prefix, item['id'])
 			str += '\t\t<display-name>%s</display-name>\n' % channel_name
 			str += '\t\t<display-name>%s</display-name>\n' % channel_number
@@ -250,8 +247,8 @@ class SourceEveryon(SourceBase):
 			for url in [url_today, url_next]:
 				current_date = startDate if url == url_today else endDate
 
-				request = urllib2.Request(url)
-				response = urllib2.urlopen(request)
+				request = py_urllib2.Request(url)
+				response = py_urllib2.urlopen(request)
 				data = response.read()
 				idx1 = data.find('<tbody>')
 				idx2 = data.find('</tbody>')

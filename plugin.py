@@ -5,7 +5,6 @@ import os
 import traceback
 import time
 from datetime import datetime
-import urllib
 import json
 import threading
 import io
@@ -20,7 +19,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 
 # sjva 공용
 from framework.logger import get_logger
-from framework import app, db, scheduler, path_data, socketio, path_app_root, check_api
+from framework import app, db, scheduler, path_data, socketio, path_app_root, check_api, py_urllib
 from framework.util import Util
 from system.model import ModelSetting as SystemModelSetting
 
@@ -41,9 +40,9 @@ from .logic_klive import LogicKlive
 blueprint = Blueprint(package_name, package_name, url_prefix='/%s' %  package_name, template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
 
 menu = {
-    'main' : [package_name, 'KLive'],
+    'main' : [package_name, u'KLive'],
     'sub' : [
-        ['setting', '설정'], ['list', '전체채널'], ['custom_create', 'Custom 생성'], ['custom_edit', 'Custom 편집'], ['log', '로그']
+        ['setting', u'설정'], ['list', u'전체채널'], ['custom_create', u'Custom 생성'], ['custom_edit', u'Custom 편집'], ['log', u'로그']
     ],
     'category' : 'tv'
 }
@@ -306,12 +305,12 @@ def api(sub):
             proxy = request.args.get('proxy')
             proxies = None
             if proxy is not None:
-                proxy = urllib.unquote(proxy)
+                proxy = py_urllib.unquote(proxy)
                 proxies={"https": proxy, 'http':proxy}
-            url = urllib.unquote(url)
+            url = py_urllib.unquote(url)
             #logger.debug('REDIRECT:%s', url)
             res = requests.get(url, proxies=proxies)
-            data = res.content
+            data = res.text
             return data, 200, {'Content-Type':res.headers['Content-Type']}
         except Exception as e: 
             logger.error('Exception:%s', e)

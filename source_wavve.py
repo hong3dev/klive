@@ -7,7 +7,6 @@ import logging
 import traceback
 import json
 import re
-import urllib
 
 # third-party
 from sqlitedict import SqliteDict
@@ -15,7 +14,7 @@ import requests
 from flask import redirect
 
 # sjva 공용
-from framework import app, db, scheduler, path_app_root, path_data
+from framework import app, db, scheduler, path_app_root, path_data, py_urllib
 
 # 패키지
 from .plugin import logger, package_name
@@ -47,7 +46,7 @@ class SourceWavve(SourceBase):
                 img = 'https://' + item['tvimage'] if item['tvimage'] != '' else ''
                 if img != '':
                     tmp = img.split('/')
-                    tmp[-1] = urllib.quote(tmp[-1].encode('utf8'))
+                    tmp[-1] = py_urllib.quote(tmp[-1].encode('utf8'))
                     img = '/'.join(tmp)
                 c = ModelChannel(cls.source_name, item['channelid'], item['channelname'], img, (item['type']=='video'))
                 c.current = item['title']
@@ -99,13 +98,13 @@ class SourceWavve(SourceBase):
             if proxy is not None:
                 proxies={"https": proxy, 'http':proxy}
 
-            data = requests.get(url, proxies=proxies).content
+            data = requests.get(url, proxies=proxies).text
             temp = url.split('live.m3u8')
             new_data = data.replace('live_', '%slive_' % temp[0])
             if mode == 'web_play':
                 pass
             else:
-                from logic import Logic
+                from .logic import Logic
                 if ModelSetting.get('wavve_streaming_type') == '0': #
                     return new_data
             proxy = None
@@ -158,7 +157,7 @@ class SourceWavve(SourceBase):
             tree = ET.ElementTree(root)
             ret = ET.tostring(root, pretty_print=True, xml_declaration=True, encoding="utf-8")
             return data, ret
-        except Exception, e:
+        except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())  
 
@@ -178,6 +177,6 @@ class SourceWavve(SourceBase):
             tmp = json_data['playurl']
             logger.debug(tmp)
             return redirect(tmp, code=302)
-        except Exception, e:
+        except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())  
