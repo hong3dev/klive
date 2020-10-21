@@ -32,7 +32,6 @@ from system.logic import SystemLogic
 
 # 패키지
 from .model import ModelSetting, ModelChannel
-import plex 
 from .logic_klive import LogicKlive
 
 # 로그
