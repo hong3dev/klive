@@ -158,7 +158,7 @@ function make_list(data) {
     }
     
     tmp = ''
-    if (data[i].source == 'wavve' || data[i].source == 'tving' || data[i].source == 'everyon') {
+    if (data[i].source == 'wavve' || data[i].source == 'tving'){// || data[i].source == 'everyon') {
       tmp += m_button('web_play_btn', 'Play', [{'key':'source', 'value':data[i].source}, {'key':'source_id', 'value':data[i].source_id}]);
     }
     url = ddns + "/"+package_name+"/api/url.m3u8?m=url&s=" + data[i].source + "&i=" + data[i].source_id

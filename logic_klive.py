@@ -76,8 +76,8 @@ class LogicKlive(object):
                 LogicKlive.source_list['tving'] = SourceTving('tving', ModelSetting.get('tving_id'), ModelSetting.get('tving_pw'), '0')
             if ModelSetting.get_bool('use_videoportal'):
                 LogicKlive.source_list['videoportal'] = SourceVideoportal('videoportal', None, None, None)
-            if ModelSetting.get_bool('use_everyon'):
-                LogicKlive.source_list['everyon'] = SourceEveryon('everyon', None, None, None)
+            #if ModelSetting.get_bool('use_everyon'):
+            #    LogicKlive.source_list['everyon'] = SourceEveryon('everyon', None, None, None)
             if ModelSetting.get_bool('use_kbs'):
                 LogicKlive.source_list['kbs'] = SourceKBS('kbs', None, None, None)
             if ModelSetting.get_bool('use_sbs'):
@@ -166,7 +166,7 @@ class LogicKlive(object):
                     entity['videoportal_name'] = entity['videoportal_id'] = entity['videoportal_number'] = None
                     entity['everyon_name'] = entity['everyon_id'] = entity['everyon_number'] = None
 
-                    if ch.source in ['wavve', 'tving', 'videoportal', 'everyon']:
+                    if ch.source in ['wavve', 'tving', 'videoportal']:#, 'everyon']:
                         entity['%s_id' % ch.source] = ch.source_id
                         entity['%s_name' % ch.source] = ch.title
                         entity['category'] = ch.source
@@ -193,8 +193,8 @@ class LogicKlive(object):
                     x['auto'] = 'tving'
                 elif arg['use_videoportal'] == 'True' and x['videoportal_id'] is not None:
                     x['auto'] = 'videoportal'
-                elif arg['use_everyon'] == 'True' and x['everyon_id'] is not None:
-                    x['auto'] = 'everyon'
+                #elif arg['use_everyon'] == 'True' and x['everyon_id'] is not None:
+                #    x['auto'] = 'everyon'
 
                 if x['wavve_id'] is not None:
                     entity = db.session.query(ModelCustom).filter(ModelCustom.source == 'wavve').filter(ModelCustom.source_id == x['wavve_id']).first()
@@ -208,10 +208,10 @@ class LogicKlive(object):
                     entity = db.session.query(ModelCustom).filter(ModelCustom.source == 'videoportal').filter(ModelCustom.source_id == x['videoportal_id']).first()
                     if entity is not None:
                         x['videoportal_number'] = entity.number
-                if x['everyon_id'] is not None:
-                    entity = db.session.query(ModelCustom).filter(ModelCustom.source == 'everyon').filter(ModelCustom.source_id == x['everyon_id']).first()
-                    if entity is not None:
-                        x['everyon_number'] = entity.number
+                #if x['everyon_id'] is not None:
+                #    entity = db.session.query(ModelCustom).filter(ModelCustom.source == 'everyon').filter(ModelCustom.source_id == x['everyon_id']).first()
+                #    if entity is not None:
+                #        x['everyon_number'] = entity.number
                 if 'user_source' in x:
                     entity = db.session.query(ModelCustom).filter(ModelCustom.source == x['user_source']).filter(ModelCustom.source_id == x['user_source_id']).first()
                     if entity is not None:
@@ -284,9 +284,9 @@ class LogicKlive(object):
                     mc = ModelCustom()
                     #mc.epg_id, mc.source, mc.source_id, mc.title, number = key.split('|')
                     mc.epg_id, mc.epg_name, mc.group, mc.source, mc.source_id, mc.title, number = key.split('|')
-                    mc.epg_name = unicode(mc.epg_name)
-                    mc.title = unicode(mc.title)
-                    mc.group = unicode(mc.group)
+                    mc.epg_name = str(mc.epg_name)
+                    mc.title = str(mc.title)
+                    mc.group = str(mc.group)
                     if number == 'undefined' or number == 'null':
                         mc.number = 0
                     else:
