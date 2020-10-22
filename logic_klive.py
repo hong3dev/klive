@@ -242,6 +242,11 @@ class LogicKlive(object):
     @staticmethod
     def get_return_data(source, source_id, url, mode):
         try:
+            logger.debug(source)
+            logger.debug(source_id)
+            logger.debug(url)
+            logger.debug(mode)
+
             #for ins in LogicKlive.source_list:
             #    if ins.
             return LogicKlive.source_list[source].get_return_data(source_id, url, mode)

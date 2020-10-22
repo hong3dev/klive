@@ -59,7 +59,7 @@ plugin_info = {
 
 def plugin_load():
     try:
-        logger.debug('plugin_load:%s', package_name)
+        #logger.debug('plugin_load:%s', package_name)
         Logic.plugin_load()
     except Exception as e: 
         logger.error('Exception:%s', e)
@@ -68,7 +68,7 @@ def plugin_load():
 process_list = []
 def plugin_unload():
     try:
-        logger.debug('plugin_unload:%s', package_name)
+        #logger.debug('plugin_unload:%s', package_name)
         Logic.plugin_unload()
         global process_list
         try:
@@ -103,7 +103,7 @@ def r1():
 @blueprint.route('/<sub>')
 @login_required
 def first_menu(sub): 
-    logger.debug('DETAIL %s %s', package_name, sub)
+    #logger.debug('DETAIL %s %s', package_name, sub)
     try:
         from system.model import ModelSetting as SystemModelSetting
         arg = ModelSetting.to_dict()
@@ -155,7 +155,7 @@ def first_menu(sub):
 @blueprint.route('/ajax/<sub>', methods=['GET', 'POST'])
 @login_required
 def ajax(sub):
-    logger.debug('AJAX %s %s', package_name, sub)
+    #logger.debug('AJAX %s %s', package_name, sub)
     try:
         if sub == 'setting_save':
             #old = '%s%s%s%s%s%s' % (ModelSetting.get('use_wavve'), ModelSetting.get('use_tving'), ModelSetting.get('use_videoportal'), ModelSetting.get('use_everyon'), ModelSetting.get('use_streamlink'), ModelSetting.get('streamlink_list'))
@@ -224,9 +224,9 @@ def api(sub):
             source = request.args.get('s')
             source_id = request.args.get('i')
             quality = request.args.get('q')
-            logger.debug('m:%s, s:%s, i:%s', mode, source, source_id)
+            #logger.debug('m:%s, s:%s, i:%s', mode, source, source_id)
             action, ret = LogicKlive.get_url(source, source_id, quality, mode)
-            logger.debug('action:%s, url:%s', action, ret)
+            #logger.debug('action:%s, url:%s', action, ret)
             
             if mode == 'plex':
                 from system.model import ModelSetting as SystemModelSetting
@@ -248,7 +248,7 @@ def api(sub):
                     #ffmpeg_command = [path_ffmpeg, "-i", new_url, "-c", "copy", "-f", "mpegts", "-tune", "zerolatency", "pipe:stdout"]
                     ffmpeg_command = [path_ffmpeg, "-i", new_url, "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-f", "mpegts", "-tune", "zerolatency", "pipe:stdout"]
 
-                    logger.debug('command : %s', ffmpeg_command)
+                    #logger.debug('command : %s', ffmpeg_command)
                     process = subprocess.Popen(ffmpeg_command, stdout = subprocess.PIPE, stderr = subprocess.STDOUT, bufsize = -1)
                     global process_list
                     process_list.append(process)
@@ -310,7 +310,7 @@ def api(sub):
             url = py_urllib.unquote(url)
             #logger.debug('REDIRECT:%s', url)
             res = requests.get(url, proxies=proxies)
-            data = res.text
+            data = res.content
             return data, 200, {'Content-Type':res.headers['Content-Type']}
         except Exception as e: 
             logger.error('Exception:%s', e)

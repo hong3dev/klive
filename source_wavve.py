@@ -99,6 +99,7 @@ class SourceWavve(SourceBase):
                 proxies={"https": proxy, 'http':proxy}
 
             data = requests.get(url, proxies=proxies).text
+            #logger.debug(data)
             temp = url.split('live.m3u8')
             new_data = data.replace('live_', '%slive_' % temp[0])
             if mode == 'web_play':
@@ -110,7 +111,9 @@ class SourceWavve(SourceBase):
             proxy = None
             if ModelSetting.get_bool('wavve_use_proxy'):
                 proxy = ModelSetting.get('wavve_proxy_url')
-            return cls.change_redirect_data(new_data, proxy=proxy)
+            ret = cls.change_redirect_data(new_data, proxy=proxy)
+            #logger.debug(ret)
+            return ret 
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
@@ -175,7 +178,7 @@ class SourceWavve(SourceBase):
 
             json_data = Wavve.streaming(contenttype, contentid, quality, credential, proxy=proxy)
             tmp = json_data['playurl']
-            logger.debug(tmp)
+            #logger.debug(tmp)
             return redirect(tmp, code=302)
         except Exception as e:
             logger.error('Exception:%s', e)
