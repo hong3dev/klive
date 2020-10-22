@@ -104,7 +104,7 @@ class SourceYoutubedl(SourceBase):
             if target_url.startswith('YOUTUBE_'):
                 target_idx = int(target_url.split('_')[1]) - 1
                 live_home = 'https://www.youtube.com/playlist?list=PLU12uITxBEPGpEPrYAxJvNDP6Ugx2jmUx'
-                data = requests.get(live_home).content
+                data = requests.get(live_home).text
                 root = html.fromstring(data)
                 tags = root.xpath('//td[@class="pl-video-title"]/a')
                 target_url = 'https://www.youtube.com' + tags[target_idx].attrib['href'].split('&')[0]
@@ -124,7 +124,7 @@ class SourceYoutubedl(SourceBase):
     @classmethod
     def get_return_data(cls, source_id, url, mode):
         try:
-            data = requests.get(url).content
+            data = requests.get(url).text
             return cls.change_redirect_data(data)
         except Exception as e:
             logger.error('Exception:%s', e)

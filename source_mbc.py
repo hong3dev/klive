@@ -55,7 +55,7 @@ class SourceMBC(SourceBase):
                     else:
                         url = 'http://miniplay.imbc.com/AACLiveURL.ashx?protocol=M3U8&channel=%s&agent=android&androidVersion=24' % tmp[2]
                     break
-            url = requests.get(url).content.strip()
+            url = requests.get(url).text.strip()
             if mode == 'web_play':
                 return 'return_after_read', url
             return 'redirect', url
@@ -67,7 +67,7 @@ class SourceMBC(SourceBase):
     @classmethod
     def get_return_data(cls, source_id, url, mode):
         try:
-            data = requests.get(url).content
+            data = requests.get(url).text
             return cls.change_redirect_data(data)
         except Exception as e:
             logger.error('Exception:%s', e)

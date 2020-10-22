@@ -68,7 +68,7 @@ class SourceFixURL(SourceBase):
     @classmethod
     def get_return_data(cls, source_id, url, mode):
         try:
-            data = requests.get(url).content
+            data = requests.get(url).text
             return cls.change_redirect_data(data)
         except Exception as e:
             logger.error('Exception:%s', e)

@@ -310,7 +310,7 @@ def api(sub):
             url = py_urllib.unquote(url)
             #logger.debug('REDIRECT:%s', url)
             res = requests.get(url, proxies=proxies)
-            data = res.content
+            data = res.text
             return data, 200, {'Content-Type':res.headers['Content-Type']}
         except Exception as e: 
             logger.error('Exception:%s', e)

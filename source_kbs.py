@@ -27,7 +27,7 @@ class SourceKBS(SourceBase):
     def get_channel_list(cls):
         try:
             ret = []
-            data = requests.get('http://onair.kbs.co.kr').content
+            data = requests.get('http://onair.kbs.co.kr').text
             idx1 = data.find('var channelList = JSON.parse') + 30
             idx2 = data.find(');', idx1)-1
             data = data[idx1:idx2].replace('\\', '')
@@ -59,7 +59,7 @@ class SourceKBS(SourceBase):
     @classmethod
     def get_return_data(cls, source_id, url, mode):
         try:
-            data = requests.get(url).content
+            data = requests.get(url).text
 
             return cls.change_redirect_data(data)
         except Exception as e:
