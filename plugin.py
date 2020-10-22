@@ -224,9 +224,9 @@ def api(sub):
             source = request.args.get('s')
             source_id = request.args.get('i')
             quality = request.args.get('q')
-            #logger.debug('m:%s, s:%s, i:%s', mode, source, source_id)
+            logger.debug('m:%s, s:%s, i:%s', mode, source, source_id)
             action, ret = LogicKlive.get_url(source, source_id, quality, mode)
-            #logger.debug('action:%s, url:%s', action, ret)
+            logger.debug('action:%s, url:%s', action, ret)
             
             if mode == 'plex':
                 from system.model import ModelSetting as SystemModelSetting
