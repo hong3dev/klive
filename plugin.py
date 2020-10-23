@@ -300,7 +300,6 @@ def api(sub):
         return LogicKlive.get_m3u(for_tvh=True, m3u_format=request.args.get('format'), group=request.args.get('group'))
     elif sub == 'redirect':
         try:
-            
             url = request.args.get('url')
             proxy = request.args.get('proxy')
             proxies = None
@@ -310,7 +309,7 @@ def api(sub):
             url = py_urllib.unquote(url)
             #logger.debug('REDIRECT:%s', url)
             res = requests.get(url, proxies=proxies)
-            data = res.text
+            data = res.content
             return data, 200, {'Content-Type':res.headers['Content-Type']}
         except Exception as e: 
             logger.error('Exception:%s', e)
