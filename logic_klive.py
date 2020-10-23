@@ -22,7 +22,7 @@ from sqlalchemy import or_, and_, func, not_
 from sqlalchemy.orm.attributes import flag_modified
 
 # sjva 공용
-from framework import app, db, scheduler, path_app_root
+from framework import app, db, scheduler, path_app_root, py_unicode
 from framework.job import Job
 from framework.util import Util
 
@@ -289,9 +289,9 @@ class LogicKlive(object):
                     mc = ModelCustom()
                     #mc.epg_id, mc.source, mc.source_id, mc.title, number = key.split('|')
                     mc.epg_id, mc.epg_name, mc.group, mc.source, mc.source_id, mc.title, number = key.split('|')
-                    mc.epg_name = str(mc.epg_name)
-                    mc.title = str(mc.title)
-                    mc.group = str(mc.group)
+                    mc.epg_name = u'%s' % mc.epg_name
+                    mc.title = u'%s' % mc.title
+                    mc.group = u'%s' % mc.group
                     if number == 'undefined' or number == 'null':
                         mc.number = 0
                     else:

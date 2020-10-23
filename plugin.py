@@ -48,7 +48,7 @@ menu = {
 }
 
 plugin_info = {
-    'version' : '1.0',
+    'version' : '1.1',
     'name' : 'klive',
     'category_name' : 'tv',
     'developer' : 'soju6jan',
