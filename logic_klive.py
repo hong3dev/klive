@@ -402,7 +402,8 @@ class LogicKlive(object):
                 if for_tvh:
                     #pipe:///usr/bin/ffmpeg -loglevel fatal -i [RTSP주소] -vcodec copy -acodec copy -metadata service_provider=xxx -metadata service_name=yyy -f mpegts -tune zerolatency pipe:1
                     #url = 'pipe://%s -i "%s" -c copy -metadata service_provider=sjva_klive -metadata service_name="%s" -f mpegts -tune zerolatency pipe:1' % ('ffmpeg', url, c.title)
-                    url = 'pipe://%s -i "%s" -c copy -metadata service_provider=sjva_klive -metadata service_name="%s" -c:v copy -c:a aac -b:a 128k -f mpegts -tune zerolatency pipe:1' % ('ffmpeg', url, c.title)
+                    #url = 'pipe://%s -i "%s" -c copy -metadata service_provider=sjva_klive -metadata service_name="%s" -c:v copy -c:a aac -b:a 128k -f mpegts -tune zerolatency pipe:1' % ('ffmpeg', url, c.title)
+                    url = 'pipe://%s -loglevel quiet -i "%s" -c copy -metadata service_provider=sjva_klive -metadata service_name="%s" -c:v copy -c:a aac -b:a 128k -f mpegts -tune zerolatency pipe:1' % ('ffmpeg', url, c.title)
 
                 #m3u += M3U_FORMAT % (c.source+'|' + c.source_id, c.title, c.epg_entity.icon, c.source, c.source + ' ' + c.title, url)
 
