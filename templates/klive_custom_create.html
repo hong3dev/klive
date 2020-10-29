@@ -113,15 +113,15 @@ function make_list(ret, how) {
 
 
     for (j in site) {
-      if ((site[j][1] != null && site_use[j]) || (j == 4 && data[i].user_source != null)) {
+      if ((site[j][1] != null && site_use[j]) || (j == 3 && data[i].user_source != null)) {
         source_name = site[j][0]
-        if (j == 4) source_name = data[i].user_source
+        if (j == 3) source_name = data[i].user_source
         
         tmp_id = data[i].id + '|' + data[i].name+'|' + data[i].category + '|' + source_name +'|' + site[j][2] + '|' + site[j][1] + '|' + site[j][3]
         //console.log(tmp_id)
         if (how == 'auto') {
           tmp_id = data[i].id + '|' + data[i].name+'|' + data[i].category + '|' + source_name +'|' + site[j][2] + '|' + site[j][1] + '|' + '0'
-          if (source_name == data[i].auto || j == 4) {
+          if (source_name == data[i].auto || j == 3) {
             tmp = '<label class="checkbox-inline"><input type="checkbox" name="'+tmp_id+'" checked>'+site[j][1]+'</label><br>'
           } else {
             tmp = '<label class="checkbox-inline"><input type="checkbox" name="'+tmp_id +'">'+site[j][1]+'</label><br>'
