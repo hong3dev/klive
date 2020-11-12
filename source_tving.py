@@ -33,18 +33,22 @@ class SourceTving(SourceBase):
     @classmethod
     def get_channel_list(cls):
         try:
-            data = Tving.get_live_list(list_type='both')
+            data = Tving.get_live_list(list_type='0', include_drm=ModelSetting.get_bool('tving_include_drm'))
             ret = []
             for item in data:
-                if item['free']:
-                    if item['title'].startswith('CH.'):
-                        continue
-                    #C04601 : 채널CGV, ocn, super action, ytn life, ocn                        
-                    if item['id'] in ['C04601', 'C07381', 'C07382', 'C01101']:
-                        continue
-                    c = ModelChannel(cls.source_name, item['id'], item['title'], item['img'], True)
-                    c.current = item['episode_title']
-                    ret.append(c)
+                #if item['free']:
+                if item['title'].startswith('CH.'):
+                    continue
+                #C04601 : 채널CGV, ocn, super action, ytn life, ocn                        
+                #if item['id'] in ['C04601', 'C07381', 'C07382', 'C01101']:
+                #    continue
+                
+                c = ModelChannel(cls.source_name, item['id'], item['title'], item['img'], True)
+                if item['is_drm']:
+                    #logger.debug(item['title'])
+                    c.is_drm_channel = True
+                c.current = item['episode_title']
+                ret.append(c)
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
@@ -61,12 +65,16 @@ class SourceTving(SourceBase):
             proxy = None
             if ModelSetting.get_bool('tving_use_proxy'):
                 proxy = ModelSetting.get('tving_proxy_url')
-            data, url = Tving.get_episode_json(c_id, quality, cls.login_data, proxy=proxy, is_live=True)
-
-            if source_id.startswith('V'):
-                return 'redirect', url
+            
+            if Tving.is_drm_channel(source_id):
+                return Tving.get_stream_info_by_web('live', c_id, quality, cls.login_data, deviceid=ModelSetting.get('tving_deviceid'), proxy=proxy)
             else:
-                return 'return_after_read', url
+                data, url = Tving.get_episode_json(c_id, quality, cls.login_data, proxy=proxy, is_live=True)
+
+                if source_id.startswith('V'):
+                    return 'redirect', url
+                else:
+                    return 'return_after_read', url
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())

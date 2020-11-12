@@ -315,6 +315,30 @@ def api(sub):
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
 
+    elif sub == 'url.mpd':
+        try:
+            mode = request.args.get('m')
+            source = request.args.get('s')
+            source_id = request.args.get('i')
+            quality = request.args.get('q')
+            data = LogicKlive.get_play_info(source, source_id, quality, mode=mode)
+            return jsonify(data)
+        except Exception as e: 
+            logger.error('Exception:%s', e)
+            logger.error(traceback.format_exc())  
+    elif sub == 'sinaplayer':
+        data = LogicKlive.get_m3u_for_sinaplayer()
+        return data
+
+@blueprint.route('/normal/<sub>', methods=['GET', 'POST'])
+def normal(sub):
+    try:
+        pass
+
+    except Exception as exception: 
+        P.logger.error('Exception:%s', exception)
+        P.logger.error(traceback.format_exc())
+
 
 #########################################################
 # Proxy

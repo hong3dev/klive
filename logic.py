@@ -42,7 +42,7 @@ logger = get_logger(package_name)
 
 class Logic(object):
     db_default = {
-        'db_version' : '1',
+        'db_version' : '3',
         'use_wavve' : 'True',
         'wavve_id' : '',
         'wavve_pw' : '',
@@ -60,6 +60,9 @@ class Logic(object):
         'tving_use_proxy' : 'False',
         'tving_proxy_url' : '',
         'tving_vod_page' : '5',
+        'tving_include_drm' : 'False',
+        'tving_deviceid' : '',
+
 
         'use_videoportal' : 'True',
 
@@ -131,7 +134,26 @@ class Logic(object):
     @staticmethod
     def migration():
         try:
-            pass
+            if ModelSetting.get('db_version') == '1':
+                import sqlite3
+                db_file = os.path.join(path_app_root, 'data', 'db', '%s.db' % package_name)
+                connection = sqlite3.connect(db_file)
+                cursor = connection.cursor()
+                query = 'ALTER TABLE %s_channel ADD is_drm_channel INT' % (package_name)
+                cursor.execute(query)
+                connection.close()
+                ModelSetting.set('db_version', '2')
+                db.session.flush()
+            if ModelSetting.get('db_version') == '2':
+                import sqlite3
+                db_file = os.path.join(path_app_root, 'data', 'db', '%s.db' % package_name)
+                connection = sqlite3.connect(db_file)
+                cursor = connection.cursor()
+                query = 'ALTER TABLE %s_custom ADD is_drm_channel INT' % (package_name)
+                cursor.execute(query)
+                connection.close()
+                ModelSetting.set('db_version', '3')
+                db.session.flush()
             #db_version = ModelSetting.get('db_version')
         except Exception as e:
             logger.error('Exception:%s', e)

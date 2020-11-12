@@ -74,6 +74,12 @@ class LogicKlive(object):
                 LogicKlive.source_list['wavve'] = SourceWavve('wavve', ModelSetting.get('wavve_id'), ModelSetting.get('wavve_pw'), None)
             if ModelSetting.get_bool('use_tving'):
                 LogicKlive.source_list['tving'] = SourceTving('tving', ModelSetting.get('tving_id'), ModelSetting.get('tving_pw'), '0')
+                if ModelSetting.get('tving_deviceid') == '':
+                    import framework.tving.api as Tving
+                    deviceid = Tving.get_device_id(LogicKlive.source_list['tving'].login_data)
+                    #logger.debug("deviceid: %s", deviceid)
+                    ModelSetting.set('tving_deviceid', deviceid) 
+
             if ModelSetting.get_bool('use_videoportal'):
                 LogicKlive.source_list['videoportal'] = SourceVideoportal('videoportal', None, None, None)
             #if ModelSetting.get_bool('use_everyon'):
@@ -136,7 +142,7 @@ class LogicKlive(object):
             arg = Util.db_list_to_dict(setting_list)
             for x in total_channel_list:
                 #if (arg['use_wavve'] == 'True' and x.wavve_id is not None) or (arg['use_tving'] == 'True' and x.tving_id is not None) or (arg['use_videoportal'] == 'True' and x.videoportal_id is not None) or (arg['use_everyon'] == 'True' and x.everyon_id is not None):
-                if (arg['use_wavve'] == 'True' and x.wavve_id is not None) or (arg['use_tving'] == 'True' and x.tving_id is not None) or (arg['use_videoportal'] == 'True' and x.videoportal_id is not None) or (arg['use_everyon'] == 'True' and x.everyon_id is not None):
+                if (arg['use_wavve'] == 'True' and x.wavve_id is not None) or (arg['use_tving'] == 'True' and x.tving_id is not None) or (arg['use_videoportal'] == 'True' and x.videoportal_id is not None):
                     tmp.append(x)
             
             # 이 목록에 없는 방송은 넣는다.. 스포츠, 라디오?
@@ -156,7 +162,7 @@ class LogicKlive(object):
                     except:
                         logger.debug(t)
                 if find == False:
-                    #logger.debug('%s %s' % (ch.source, ch.title))
+                    logger.debug('%s %s' % (ch.source, ch.title))
                     entity = {}
                     index += 1
                     entity['id'] = str(index)
@@ -242,13 +248,6 @@ class LogicKlive(object):
     @staticmethod
     def get_return_data(source, source_id, url, mode):
         try:
-            logger.debug(source)
-            logger.debug(source_id)
-            logger.debug(url)
-            logger.debug(mode)
-
-            #for ins in LogicKlive.source_list:
-            #    if ins.
             return LogicKlive.source_list[source].get_return_data(source_id, url, mode)
         except Exception as e: 
             logger.error('Exception:%s', e)
@@ -265,6 +264,8 @@ class LogicKlive(object):
             idx = 1
             for c in LogicKlive.get_channel_list():
                 url = '{ddns}/{package_name}/api/url.m3u8?m=url&s={source}&i={source_id}'.format(ddns=SystemModelSetting.get('ddns'), package_name=package_name, source=c.source, source_id=c.source_id)
+                if c.is_drm_channel:
+                    url = url.replace('url.m3u8', 'url.mpd')
                 if apikey is not None:
                     url += '&apikey=%s' % apikey
                 if c.is_tv:
@@ -287,7 +288,6 @@ class LogicKlive(object):
                 #logger.debug('Key:%s Value:%s %s', key, value, [key])
                 if value == "True":
                     mc = ModelCustom()
-                    #mc.epg_id, mc.source, mc.source_id, mc.title, number = key.split('|')
                     mc.epg_id, mc.epg_name, mc.group, mc.source, mc.source_id, mc.title, number = key.split('|')
                     mc.epg_name = u'%s' % mc.epg_name
                     mc.title = u'%s' % mc.title
@@ -296,6 +296,9 @@ class LogicKlive(object):
                         mc.number = 0
                     else:
                         mc.number = int(number)
+                    if mc.source == 'tving':
+                        import framework.tving.api as Tving
+                        mc.is_drm_channel = Tving.is_drm_channel(mc.source_id)
                     db.session.add(mc)
                     count += 1
             LogicKlive.reset_epg_time()
@@ -358,7 +361,7 @@ class LogicKlive(object):
     def reset_epg_time():
         try:
             import epg
-            epg.LogicNormal.make_xml(package_name)
+            #epg.LogicNormal.make_xml(package_name)
         except Exception as e: 
             #logger.error('Exception:%s', e)
             #logger.error(traceback.format_exc())
@@ -396,6 +399,8 @@ class LogicKlive(object):
             
             for c in saved_channeld_list:
                 url = '%s/%s/api/url.m3u8?m=url&s=%s&i=%s&q=%s' % (ddns, package_name, c.source, c.source_id, c.quality)
+                if c.is_drm_channel:
+                    url = url.replace('url.m3u8', 'url.mpd')
                 if apikey is not None:
                     url += '&apikey=%s' % apikey
                 #if c.epg_entity.is_tv:
@@ -426,11 +431,61 @@ class LogicKlive(object):
                 if group is not None:
                     group_name = '' if group == 'EMPTY' else group
                 m3u += M3U_FORMAT % (c.source+'|' + c.source_id, tvg_name, icon, group_name, c.number, c.number, c.title, url)
-
-
-                
-                
             return m3u
+        except Exception as e: 
+            logger.error('Exception:%s', e)
+            logger.error(traceback.format_exc())
+
+    @staticmethod
+    def get_m3u_for_sinaplayer():
+        try:
+            from system.model import ModelSetting as SystemModelSetting
+            apikey = None
+            if SystemModelSetting.get_bool('auth_use_apikey'):
+                apikey = SystemModelSetting.get('auth_apikey')
+            ddns = SystemModelSetting.get('ddns')
+            m3u = '#EXTM3U\n'
+            query = db.session.query(ModelCustom)
+            query = query.order_by(ModelCustom.number)
+            query = query.order_by(ModelCustom.epg_id)
+            saved_channeld_list = query.all()
+            
+            for c in saved_channeld_list:
+                if c.is_drm_channel:
+                    play_info = LogicKlive.get_play_info(c.source, c.source_id, c.quality)
+                    play_info = json.dumps(play_info)
+                else:
+                    play_info= '%s/%s/api/url.m3u8?m=url&s=%s&i=%s&q=%s' % (ddns, package_name, c.source, c.source_id, c.quality)
+                    if apikey is not None:
+                        play_info += '&apikey=%s' % apikey
+
+                import epg
+                ins = epg.ModelEpgMakerChannel.get_instance_by_name(c.epg_name)
+                icon = '' if ins is None else ins.icon
+                if icon is None:
+                    icon = c.icon
+                tvg_name = c.title
+                group_name = c.group
+                m3u += M3U_FORMAT % (c.source+'|' + c.source_id, tvg_name, icon, group_name, c.number, c.number, c.title, play_info)
+            return m3u
+        except Exception as e: 
+            logger.error('Exception:%s', e)
+            logger.error(traceback.format_exc())
+
+
+    
+    @staticmethod
+    def get_play_info(source, source_id, quality, mode='url'):
+        try:
+            from .model import ModelCustom
+            db_item = ModelCustom.get(source, source_id)
+            if db_item is not None and db_item.json is not None and quality in db_item.json:
+                data = db_item.json[quality]
+            else:
+                data = LogicKlive.get_url(source, source_id, quality, mode)['play_info']
+                if db_item is not None:
+                    db_item.set_play_info(quality, data)
+            return data
         except Exception as e: 
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
