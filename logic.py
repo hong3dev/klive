@@ -44,13 +44,10 @@ class Logic(object):
     db_default = {
         'db_version' : '3',
         'use_wavve' : 'True',
-        'wavve_id' : '',
-        'wavve_pw' : '',
         'wavve_quality' : 'HD',
         'wavve_streaming_type' : '1',
         'wavve_use_proxy' : 'False',
         'wavve_proxy_url' : '',
-        'wavve_credential' : '',
         'wavve_vod_page' : '5',
 
         'use_tving' : 'False',

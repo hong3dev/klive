@@ -19,9 +19,8 @@ from flask_login import login_user, logout_user, current_user, login_required
 
 # sjva 공용
 from framework.logger import get_logger
-from framework import app, db, scheduler, path_data, socketio, path_app_root, check_api, py_urllib
+from framework import app, db, scheduler, path_data, socketio, path_app_root, check_api, py_urllib, SystemModelSetting
 from framework.util import Util
-from system.model import ModelSetting as SystemModelSetting
 
 # 패키지
 package_name = __name__.split('.')[0]
@@ -105,7 +104,6 @@ def r1():
 def first_menu(sub): 
     #logger.debug('DETAIL %s %s', package_name, sub)
     try:
-        from system.model import ModelSetting as SystemModelSetting
         arg = ModelSetting.to_dict()
         arg['package_name']  = package_name
         arg['ddns'] = SystemModelSetting.get('ddns')
@@ -194,14 +192,11 @@ def ajax(sub):
                 from .source_streamlink import SourceStreamlink
                 SourceStreamlink.install()
             return jsonify({})
-        elif sub == 'wavve_credential_reset':
-            ModelSetting.set('wavve_credential', '')
-            return jsonify(True)
         elif sub == 'get_logindata':
             site = request.form['site']
             ret = ''
             if site == 'wavve':
-                ret = ModelSetting.get('wavve_credential')
+                ret = ''
             elif site == 'tving':
                 if 'tving' in LogicKlive.source_list and LogicKlive.source_list['tving'] is not None:
                     ret = LogicKlive.source_list['tving'].login_data
@@ -229,7 +224,6 @@ def api(sub):
             #logger.debug('action:%s, url:%s', action, ret)
             
             if mode == 'plex':
-                from system.model import ModelSetting as SystemModelSetting
                 #new_url = '%s/klive/api/url.m3u8?m=web_play&s=%s&i=%s&q=%s' % (SystemModelSetting.get('ddns'), source, source_id, quality)
                 new_url = '%s/klive/api/url.m3u8?m=url&s=%s&i=%s&q=%s' % (SystemModelSetting.get('ddns'), source, source_id, quality)
                 #logger.debug(SystemModelSetting.get_bool('auth_use_apikey'))
@@ -347,7 +341,6 @@ def normal(sub):
 def proxy(sub):
     logger.debug('proxy %s %s', package_name, sub)
     try:
-        from system.model import ModelSetting as SystemModelSetting
         if sub == 'discover.json':
             ddns = SystemModelSetting.get('ddns')
             data = {"FriendlyName":"HDHomeRun CONNECT","ModelNumber":"HDHR4-2US","FirmwareName":"hdhomerun4_atsc","FirmwareVersion":"20190621","DeviceID":"104E8010","DeviceAuth":"UF4CFfWQh05c3jROcArmAZaf","BaseURL":"%s/klive/proxy" % ddns,"LineupURL":"%s/klive/proxy/lineup.json" % ddns,"TunerCount":20}

@@ -14,7 +14,7 @@ import requests
 from flask import redirect
 
 # sjva 공용
-from framework import app, db, scheduler, path_app_root, path_data, py_urllib
+from framework import app, db, scheduler, path_app_root, path_data, py_urllib, SystemModelSetting
 
 # 패키지
 from .plugin import logger, package_name
@@ -30,12 +30,6 @@ class SourceWavve(SourceBase):
     @classmethod
     def prepare(cls, source_id, source_pw, arg):
         cls.login_data = None
-        if ModelSetting.get('wavve_credential') == '':
-            if source_id != '' and source_pw != '':
-                cls.login_data = Wavve.do_login(source_id, source_pw)
-                ModelSetting.set('wavve_credential', cls.login_data)
-        else:
-            cls.login_data = ModelSetting.get('wavve_credential')
 
     @classmethod
     def get_channel_list(cls):
@@ -65,19 +59,12 @@ class SourceWavve(SourceBase):
             proxy = None
             if ModelSetting.get_bool('wavve_use_proxy'):
                 proxy = ModelSetting.get('wavve_proxy_url')
-            try:
-                data = Wavve.streaming('live', source_id, quality, cls.login_data, proxy=proxy)
-                surl = None
-                if data is not None:
-                    surl = data['playurl']
-                if surl is None:
-                    raise Exception('no url')
-            except:
-                if retry:
-                    logger.debug('RETRY')
-                    cls.login_data = Wavve.do_login(ModelSetting.get('wavve_id'), ModelSetting.get('wavve_pw'))
-                    ModelSetting.set('wavve_credential', cls.login_data)
-                    return cls.get_url(source_id, quality, mode, retry=False)
+            data = Wavve.streaming('live', source_id, quality, proxy=proxy)
+            surl = None
+            if data is not None:
+                surl = data['playurl']
+            if surl is None:
+                raise Exception('no url')
 
             if ModelSetting.get('wavve_streaming_type') == '2':
                 return 'redirect', surl
@@ -171,12 +158,11 @@ class SourceWavve(SourceBase):
             contentid = req.args.get('contentid')
             contenttype = req.args.get('type')
             quality = ModelSetting.get('wavve_quality')
-            credential = ModelSetting.get('wavve_credential')
             proxy = None
             if ModelSetting.get_bool('wavve_use_proxy'):
                 proxy = ModelSetting.get('wavve_proxy_url')
 
-            json_data = Wavve.streaming(contenttype, contentid, quality, credential, proxy=proxy)
+            json_data = Wavve.streaming(contenttype, contentid, quality, proxy=proxy)
             tmp = json_data['playurl']
             #logger.debug(tmp)
             return redirect(tmp, code=302)
