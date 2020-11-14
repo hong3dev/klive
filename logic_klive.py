@@ -74,12 +74,6 @@ class LogicKlive(object):
                 LogicKlive.source_list['wavve'] = SourceWavve('wavve', ModelSetting.get('wavve_id'), ModelSetting.get('wavve_pw'), None)
             if ModelSetting.get_bool('use_tving'):
                 LogicKlive.source_list['tving'] = SourceTving('tving', ModelSetting.get('tving_id'), ModelSetting.get('tving_pw'), '0')
-                if ModelSetting.get('tving_deviceid') == '':
-                    import framework.tving.api as Tving
-                    deviceid = Tving.get_device_id(LogicKlive.source_list['tving'].login_data)
-                    #logger.debug("deviceid: %s", deviceid)
-                    ModelSetting.set('tving_deviceid', deviceid) 
-
             if ModelSetting.get_bool('use_videoportal'):
                 LogicKlive.source_list['videoportal'] = SourceVideoportal('videoportal', None, None, None)
             #if ModelSetting.get_bool('use_everyon'):

@@ -25,8 +25,6 @@
       <div id="use_wavve_div" class="collapse">
         {{ macros.setting_select('wavve_quality', '웨이브 화질', [['FHD','FHD'], ['HD','HD'], ['SD', 'SD']], col='3', value=arg['wavve_quality'])}}
         {{ macros.setting_radio('wavve_streaming_type', 'Wavve 스트리밍 타입', ['직접연결', 'SJVA사용', 'Redirect'], value=arg['wavve_streaming_type'], desc=['웨이브는 방송 요청을 한 IP와 Player IP가 일치해야만 합니다.', 'Redirect : 가장 좋습니다만 Player에 따라 10분 후 중지될 수 있습니다.', '중지가 안된다면 이 방법으로 사용하세요. 동일 네트워크의 Tvheadend에 연결할 때 사용합니다.', '직접연결 : SJVA와 Player가 동일 네트워크 일 때 사용합니다. SJVA사용 옵션보다 성능이 좋습니다.', 'SJVA사용 : 타 네트워크에서 재생할 때 사용합니다. SJVA가 방송 데이터를 받아서 Player에 보냅니다.']) }}
-        {{ macros.setting_checkbox('wavve_use_proxy', 'Proxy 사용', value=arg['wavve_use_proxy'], desc=['외국에서 시청 불가능합니다. 국내 IP로 인식할 수 있는 Proxy가 있는 경우, Proxy와 SJVA사용 옵션을 통해 시청가능합니다.', '티빙과는 다르게 매 패킷마다 IP 체크를 합니다.']) }}
-        {{ macros.setting_input_text('wavve_proxy_url', 'Proxy URL', value=arg['wavve_proxy_url'], desc=['참고 : https://www.proxynova.com/proxy-server-list/country-kr']) }}
         {{ macros.m_hr() }}
         {{ macros.setting_input_int('wavve_vod_page', 'VOD 탐색 페이지', value=arg['wavve_vod_page'], min='1', desc=['최신 VOD 탐색 페이지 수']) }}
       </div>
@@ -35,13 +33,7 @@
     {{ macros.m_tab_content_start('tving', false) }}
       {{ macros.setting_checkbox('use_tving', 'tving', value=arg['use_tving'], desc=['무료 계정 HD 재생', '유료계정 FHD 재생. OCN는 DRM채널 불가']) }}
       <div id="use_tving_div" class="collapse">
-        {{ macros.setting_input_text('tving_id', '티빙 ID', col='3', value=arg['tving_id']) }}
-        {{ macros.setting_input_text('tving_pw', '티빙 PW', col='3', value=arg['tving_pw'], type='password') }}
-        {{ macros.setting_button_with_info([['get_tving_logindata_btn', '로그인 정보 확인']], left='', desc=None) }}
-        {{ macros.setting_input_text('tving_deviceid', '티빙 deviceid', col='3', value=arg['tving_deviceid']) }}
         {{ macros.setting_select('tving_quality', '티빙 화질', [['FHD','FHD'], ['HD','HD'], ['SD', 'SD']], col='3', value=arg['tving_quality'])}}
-        {{ macros.setting_checkbox('tving_use_proxy', 'Proxy 사용', value=arg['tving_use_proxy'], desc=['외국에서 시청 불가능합니다. 국내 IP로 인식할 수 있는 Proxy 주소를 입력합니다.', '방송 URL을 얻을 때만 사용하고 그 URL을 연결한 이후에는 IP 체크를 하지 않아 트래픽 부담 없이 이용할 수 있습니다.', '다만 국내IP를 판단하는 기준이 까다로워 국내리전 VPS 들도 해외접속으로 처리됩니다.']) }}
-        {{ macros.setting_input_text('tving_proxy_url', 'Proxy URL', value=arg['tving_proxy_url'], desc=['참고 : https://www.proxynova.com/proxy-server-list/country-kr']) }}
         {{ macros.setting_checkbox('tving_include_drm', 'DRM 채널 포함', value=arg['tving_include_drm'], desc=['On : OCN 등 DRM 채널 포함.']) }}
         {{ macros.m_hr() }}
         {{ macros.setting_input_int('tving_vod_page', 'VOD 탐색 페이지', value=arg['tving_vod_page'], min='1', desc=['최신 VOD 탐색 페이지 수']) }}

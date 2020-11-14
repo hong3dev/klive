@@ -27,8 +27,6 @@ class SourceTving(SourceBase):
     @classmethod
     def prepare(cls, source_id, source_pw, arg):
         cls.login_data = None
-        if source_id != '' and source_pw != '':
-            cls.login_data = Tving.do_login(source_id, source_pw, '0')
        
     @classmethod
     def get_channel_list(cls):
@@ -56,20 +54,16 @@ class SourceTving(SourceBase):
 
     @classmethod
     def get_url(cls, source_id, quality, mode):
-        #logger.debug('tving get_url:%s %s %s', source_id, quality, cls.login_data)
         try:
             quality = Tving.get_quality_to_tving(quality)
             c_id = source_id
             if source_id.startswith('V'):
                 c_id = source_id[1:]
-            proxy = None
-            if ModelSetting.get_bool('tving_use_proxy'):
-                proxy = ModelSetting.get('tving_proxy_url')
             
             if Tving.is_drm_channel(source_id):
-                return Tving.get_stream_info_by_web('live', c_id, quality, cls.login_data, deviceid=ModelSetting.get('tving_deviceid'), proxy=proxy)
+                return Tving.get_stream_info_by_web('live', c_id, quality)
             else:
-                data, url = Tving.get_episode_json(c_id, quality, cls.login_data, proxy=proxy, is_live=True)
+                data, url = Tving.get_episode_json(c_id, quality, is_live=True)
 
                 if source_id.startswith('V'):
                     return 'redirect', url
@@ -124,7 +118,7 @@ class SourceTving(SourceBase):
                     #logger.debug(vod)
                     code = vod["vod_code"]
                     title = vod['vod_name']['ko']
-                    try: logo = 'http://image.tving.com%s' % (vod['program']['image'][0]['url'])
+                    try: logo = 'http://image.tving.com%s' % (vod['fgram']['image'][0]['url'])
                     except: logo = ''
                     video_url = '%s/%s/tving/api/streaming.m3u8?contentid=%s' % (SystemModelSetting.get('ddns'), package_name, code)    
                     if SystemModelSetting.get_bool('auth_use_apikey'):
@@ -184,13 +178,7 @@ class SourceTving(SourceBase):
         try:
             c_id = req.args.get('contentid')
             quality = Tving.get_quality_to_tving(ModelSetting.get('tving_quality'))
-            proxy = None
-            if ModelSetting.get_bool('tving_use_proxy'):
-                proxy = ModelSetting.get('tving_proxy_url')
-
-            #data, url = Tving.get_episode_json(c_id, quality, cls.login_data, proxy=proxy, is_live=True)
-            # 이건 vod
-            data, url = Tving.get_episode_json(c_id, quality, cls.login_data, proxy=proxy)
+            data, url = Tving.get_episode_json(c_id, quality)
             return redirect(url, code=302)
         except Exception as e:
             logger.error('Exception:%s', e)

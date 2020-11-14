@@ -46,20 +46,12 @@ class Logic(object):
         'use_wavve' : 'True',
         'wavve_quality' : 'HD',
         'wavve_streaming_type' : '1',
-        'wavve_use_proxy' : 'False',
-        'wavve_proxy_url' : '',
         'wavve_vod_page' : '5',
 
         'use_tving' : 'False',
-        'tving_id' : '',
-        'tving_pw' : '',
         'tving_quality' : 'HD',
-        'tving_use_proxy' : 'False',
-        'tving_proxy_url' : '',
         'tving_vod_page' : '5',
         'tving_include_drm' : 'False',
-        'tving_deviceid' : '',
-
 
         'use_videoportal' : 'True',
 

@@ -56,10 +56,7 @@ class SourceWavve(SourceBase):
     @classmethod
     def get_url(cls, source_id, quality, mode, retry=True):
         try:
-            proxy = None
-            if ModelSetting.get_bool('wavve_use_proxy'):
-                proxy = ModelSetting.get('wavve_proxy_url')
-            data = Wavve.streaming('live', source_id, quality, proxy=proxy)
+            data = Wavve.streaming('live', source_id, quality)
             surl = None
             if data is not None:
                 surl = data['playurl']
@@ -77,14 +74,8 @@ class SourceWavve(SourceBase):
     @classmethod
     def get_return_data(cls, source_id, url, mode):
         try:
-            proxy = None
-            if ModelSetting.get_bool('wavve_use_proxy'):
-                proxy = ModelSetting.get('wavve_proxy_url')
-
-            proxies = None
-            if proxy is not None:
-                proxies={"https": proxy, 'http':proxy}
-
+            proxy = Wavve.get_proxy()
+            proxies = Wavve.get_proxies()
             data = requests.get(url, proxies=proxies).text
             #logger.debug(data)
             temp = url.split('live.m3u8')
@@ -95,9 +86,6 @@ class SourceWavve(SourceBase):
                 from .logic import Logic
                 if ModelSetting.get('wavve_streaming_type') == '0': #
                     return new_data
-            proxy = None
-            if ModelSetting.get_bool('wavve_use_proxy'):
-                proxy = ModelSetting.get('wavve_proxy_url')
             ret = cls.change_redirect_data(new_data, proxy=proxy)
             #logger.debug(ret)
             return ret 
@@ -158,11 +146,7 @@ class SourceWavve(SourceBase):
             contentid = req.args.get('contentid')
             contenttype = req.args.get('type')
             quality = ModelSetting.get('wavve_quality')
-            proxy = None
-            if ModelSetting.get_bool('wavve_use_proxy'):
-                proxy = ModelSetting.get('wavve_proxy_url')
-
-            json_data = Wavve.streaming(contenttype, contentid, quality, proxy=proxy)
+            json_data = Wavve.streaming(contenttype, contentid, quality)
             tmp = json_data['playurl']
             #logger.debug(tmp)
             return redirect(tmp, code=302)
