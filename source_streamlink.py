@@ -101,11 +101,10 @@ class SourceStreamlink(SourceBase):
             """
             from streamlink import Streamlink
             s  = Streamlink()
-            #s.set_option("http-proxy", "http://soju6jan.iptime.org:3128")
-            logger.debug(StreamlinkItem.ch_list[source_id].url)
+            #logger.debug(StreamlinkItem.ch_list[source_id].url)
             data = s.streams(StreamlinkItem.ch_list[source_id].url)
             
-            logger.debug(len(data))
+            #logger.debug(len(data))
             
 
             try:
