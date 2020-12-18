@@ -22,7 +22,7 @@ from sqlalchemy import or_, and_, func, not_
 from sqlalchemy.orm.attributes import flag_modified
 
 # sjva 공용
-from framework import app, db, scheduler, path_app_root, py_unicode
+from framework import app, db, scheduler, path_app_root, py_unicode, py_urllib
 from framework.job import Job
 from framework.util import Util
 
@@ -377,7 +377,7 @@ class LogicKlive(object):
             logger.error(traceback.format_exc())
 
     @staticmethod
-    def get_m3u(for_tvh=False, m3u_format=None, group=None):
+    def get_m3u(for_tvh=False, m3u_format=None, group=None, call=None):
         try:
             #logger.debug(m3u_format)
             from system.model import ModelSetting as SystemModelSetting
@@ -394,30 +394,20 @@ class LogicKlive(object):
             for c in saved_channeld_list:
                 url = '%s/%s/api/url.m3u8?m=url&s=%s&i=%s&q=%s' % (ddns, package_name, c.source, c.source_id, c.quality)
                 if c.is_drm_channel:
-                    url = url.replace('url.m3u8', 'url.mpd')
+                    if call == 'kodi':
+                        url = url.replace('url.m3u8', 'url.strm')
+                    else:
+                        url = url.replace('url.m3u8', 'url.mpd')
                 if apikey is not None:
                     url += '&apikey=%s' % apikey
-                #if c.epg_entity.is_tv:
                 if for_tvh:
-                    #pipe:///usr/bin/ffmpeg -loglevel fatal -i [RTSP주소] -vcodec copy -acodec copy -metadata service_provider=xxx -metadata service_name=yyy -f mpegts -tune zerolatency pipe:1
-                    #url = 'pipe://%s -i "%s" -c copy -metadata service_provider=sjva_klive -metadata service_name="%s" -f mpegts -tune zerolatency pipe:1' % ('ffmpeg', url, c.title)
-                    #url = 'pipe://%s -i "%s" -c copy -metadata service_provider=sjva_klive -metadata service_name="%s" -c:v copy -c:a aac -b:a 128k -f mpegts -tune zerolatency pipe:1' % ('ffmpeg', url, c.title)
                     url = 'pipe://%s -loglevel quiet -i "%s" -c copy -metadata service_provider=sjva_klive -metadata service_name="%s" -c:v copy -c:a aac -b:a 128k -f mpegts -tune zerolatency pipe:1' % ('ffmpeg', url, c.title)
-
-                #m3u += M3U_FORMAT % (c.source+'|' + c.source_id, c.title, c.epg_entity.icon, c.source, c.source + ' ' + c.title, url)
 
                 import epg
                 ins = epg.ModelEpgMakerChannel.get_instance_by_name(c.epg_name)
-                #m3u += M3U_FORMAT % (c.source+'|' + c.source_id, c.title, c.epg_entity.icon, c.source, c.title, url)
                 icon = '' if ins is None else ins.icon
                 if icon is None:
                     icon = c.icon
-                #if c.is_tv:
-                #    #m3u += M3U_FORMAT % (c.source+'|' + c.source_id, c.title, c.icon, c.group, idx, idx, c.source + ' ' + c.title, url)
-                #    m3u += M3U_FORMAT % (c.source+'|' + c.source_id, c.title, c.icon, c.group, c.number, c.number, c.title, url)
-                #else:
-                #    m3u += M3U_RADIO_FORMAT % (c.source+'|'+c.source_id, c.title, c.icon, c.group, idx, idx, c.source + ' ' + c.title, url)
-                #logger.debug(c.group)
                 tvg_name = c.title
                 if m3u_format == '1':
                     tvg_name = '%s. %s' % (str(c.number).zfill(3), c.title)
@@ -469,17 +459,37 @@ class LogicKlive(object):
 
     
     @staticmethod
-    def get_play_info(source, source_id, quality, mode='url'):
+    def get_play_info(source, source_id, quality, mode='url', return_format='json'):
         try:
             from .model import ModelCustom
             db_item = ModelCustom.get(source, source_id)
-            if db_item is not None and db_item.json is not None and quality in db_item.json:
-                data = db_item.json[quality]
-            else:
-                data = LogicKlive.get_url(source, source_id, quality, mode)['play_info']
-                if db_item is not None:
-                    db_item.set_play_info(quality, data)
-            return data
+
+            # 2020-12-18 아마 한번 얻은 재생정보가 계속 유지할거라고 생각해서 아래 코드작성한것 같음.
+            # 한달뒤에 재생 x
+            #if db_item is not None and db_item.json is not None and quality in db_item.json:
+            #    data = db_item.json[quality]
+            #else:
+            #    data = LogicKlive.get_url(source, source_id, quality, mode)['play_info']
+            #    if db_item is not None:
+            #        db_item.set_play_info(quality, data)
+            data = LogicKlive.get_url(source, source_id, quality, mode)['play_info']
+
+            if db_item is not None:
+                db_item.set_play_info(quality, data)
+            if return_format == 'json':
+                return data
+            elif return_format == 'strm':
+                headers = []
+                for key, value in data['drm_key_request_properties'].items():
+                    headers.append('{key}={value}'.format(key=key, value=py_urllib.quote(value)))
+                tmp = """#EXTM3U
+#KODIPROP:inputstreamaddon=inputstream.adaptive
+#KODIPROP:inputstream.adaptive.license_type=com.widevine.alpha
+#KODIPROP:inputstream.adaptive.manifest_type=mpd
+#KODIPROP:inputstream.adaptive.license_key={drm_license_uri}|{headers}|R{{SSM}}|
+#EXTINF:-1,{ch_name}
+{uri}""".format(uri=data['uri'], drm_license_uri=data['drm_license_uri'], headers='&'.join(headers), ch_name=db_item.title)
+                return tmp
         except Exception as e: 
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())

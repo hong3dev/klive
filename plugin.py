@@ -275,7 +275,7 @@ def api(sub):
     elif sub == 'm3uall':
         return LogicKlive.get_m3uall()
     elif sub == 'm3u':
-        data = LogicKlive.get_m3u(m3u_format=request.args.get('format'), group=request.args.get('group'))
+        data = LogicKlive.get_m3u(m3u_format=request.args.get('format'), group=request.args.get('group'), call=request.args.get('call'))
         if request.args.get('file') == 'true':
             import framework.common.util as CommonUtil
             basename = 'klive_custom.m3u'
@@ -309,11 +309,37 @@ def api(sub):
             source = request.args.get('s')
             source_id = request.args.get('i')
             quality = request.args.get('q')
-            data = LogicKlive.get_play_info(source, source_id, quality, mode=mode)
+            return_format = 'json'
+            data = LogicKlive.get_play_info(source, source_id, quality, mode=mode, return_format=return_format)
             return jsonify(data)
         except Exception as e: 
             logger.error('Exception:%s', e)
-            logger.error(traceback.format_exc())  
+            logger.error(traceback.format_exc())
+    elif sub == 'url.strm':
+        try:
+            mode = request.args.get('m')
+            source = request.args.get('s')
+            source_id = request.args.get('i')
+            quality = request.args.get('q')
+            return_format = 'strm'
+            data = LogicKlive.get_play_info(source, source_id, quality, mode=mode, return_format=return_format)
+            #return data
+
+            import framework.common.util as CommonUtil
+            from .model import ModelCustom
+            db_item = ModelCustom.get(source, source_id)
+            if db_item is not None:
+                basename = '%s.strm' % db_item.title
+            else:
+                basename = '%s.strm' % source_id
+            filename = os.path.join(path_data, 'tmp', basename)
+            CommonUtil.write_file(data, filename)
+            return send_file(filename, as_attachment=True, attachment_filename=basename)
+
+            #return data
+        except Exception as e: 
+            logger.error('Exception:%s', e)
+            logger.error(traceback.format_exc())              
     elif sub == 'sinaplayer':
         data = LogicKlive.get_m3u_for_sinaplayer()
         return data
