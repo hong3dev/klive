@@ -111,7 +111,7 @@ class SourceEveryon(SourceBase):
             request = py_urllib2.Request(url, postdata)
             request.add_header('Cookie', 'etv_api_key=88abc0e1c8e61c8c3109788ec8392c7fd86c16765fc0b80d5f2366c84c894203')
             response = py_urllib2.urlopen(request)
-            data = json.load(response, encoding='utf8')
+            data = json.load(response, encoding='utf8') if sys.version_info[0] == 2 else json.load(response)
             #url2 = data['medias'][0]['url'] if len(data['medias']) > 0 else None	
             url2 = data['media']['url'].replace('\\','')
             #logger.debug('EVERYON22 :%s', url2)
