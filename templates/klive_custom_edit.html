@@ -92,7 +92,7 @@ $(document).ready(function(){
   /* multiDrag 체크 CSS */
   let csslen = document.styleSheets[0].cssRules.length;
   document.styleSheets[0].insertRule('.tinted {background-color: #fff6b2 !important;}', csslen);
-  document.styleSheets[0].insertRule('.selected {background-color: f9c7c8 !important;opacity: 0.6;border: solid 5bc0de 1px !important;z-index: 1 !important;}', csslen+1);
+  document.styleSheets[0].insertRule('.selected {background-color: #bdbdbd !important;opacity: 0.6;border: solid #1c1c1c 1px !important;z-index: 1 !important;}', csslen+1);
   $.ajax({
     url: '/' + package_name + '/ajax/get_saved_custom',
     type: "POST", 
