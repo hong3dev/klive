@@ -16,7 +16,8 @@
   {{ macros.m_col(1,  macros.m_strong('Quality')) }}
   {{ macros.m_col(1,  macros.m_strong('Number')) }}
   {{ macros.m_col(2,  macros.m_strong('Group')) }}
-  {{ macros.m_col(3,  macros.m_strong('Action')) }}
+  {{ macros.m_col(2,  macros.m_strong('Action')) }}
+  {{ macros.m_col(1,  macros.m_strong('Move')) }}
   {{ macros.m_row_end() }}
   {{ macros.m_hr_head_bottom() }}
   <form id="custom_form" name="custom_form">
@@ -41,6 +42,7 @@ for (var i = 0; i < nestedSortables.length; i++) {
     fallbackOnBody: true,
     swapThreshold: 0.65,
     emptyInsertThreshold: 8,
+    handle: '.sort-icon',
     filter: '.filtered',
     multiDrag: true,
     selectedClass: 'selected',
@@ -93,6 +95,8 @@ $(document).ready(function(){
   let csslen = document.styleSheets[0].cssRules.length;
   document.styleSheets[0].insertRule('.tinted {background-color: #fff6b2 !important;}', csslen);
   document.styleSheets[0].insertRule('.selected {background-color: #bdbdbd !important;opacity: 0.6;border: solid #1c1c1c 1px !important;z-index: 1 !important;}', csslen+1);
+  document.styleSheets[0].insertRule('.sort-icon { float: right; font-size: 16px; }', csslen+2);
+  document.styleSheets[0].insertRule('.sort-icon:hover { cursor: move;', csslen+3);
   $.ajax({
     url: '/' + package_name + '/ajax/get_saved_custom',
     type: "POST", 
@@ -200,6 +204,7 @@ $("body").on('click', '#down_btn', function(e){
 function make_list(data, how) {
   str = '';
   channel_number = 0
+  /* i in data로 할때 data에 undefined dummy 값이 생기는 경우가 있어 data.length로 변경 */
   for (var i=0; i < data.length; i++) {
     //str += m_row_start_hover();
     /* MultiDrag div set */
@@ -253,7 +258,8 @@ function make_list(data, how) {
     if (auth_use_apikey) url = url + '&apikey=' + apikey
     tmp += m_button('global_link_btn', 'Open', [{'key':'url', 'value':url}]);
     tmp = m_button_group(tmp)
-    str += m_col(3, tmp)
+    str += m_col(2, tmp)
+    str += m_col(1, '<div class="sort-icon" style="align:left;">&nbsp;⇅ &nbsp;</div>')
 
     str += m_row_end();
     /* m_hr() 제거 : 이것도 drag대상으로 인식해서 오류 발생함 */
