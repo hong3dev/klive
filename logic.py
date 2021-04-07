@@ -18,10 +18,7 @@ from enum import Enum
 # third-party
 from sqlalchemy import desc
 from sqlalchemy import or_, and_, func, not_
-from telepot import Bot, glance
-from telepot.loop import MessageLoop
 from time import sleep
-import telepot
 
 # sjva 공용
 from framework.logger import get_logger
