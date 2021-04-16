@@ -15,12 +15,18 @@ import threading
 from lxml import html, etree
 
 # sjva 공용
+from framework import app
 
 # 패키지
 from .plugin import logger, package_name
 from .model import ModelSetting, ModelChannel
 from .source_base import SourceBase
 
+try:
+    import youtube_dl
+except ImportError:
+    os.system("{} install youtube_dl".format(app.config['config']['pip']))
+    import youtube_dl    
 #########################################################
 
 class YoutubedlItem:
