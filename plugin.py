@@ -127,9 +127,9 @@ def first_menu(sub):
                     arg[tmp] += '?apikey={apikey}'.format(apikey=apikey)
 
             from .source_streamlink import SourceStreamlink
-            arg['is_streamlink_installed'] = 'Installed' if SourceStreamlink.is_installed() else 'Not Installed'
+            arg['tmp_is_streamlink_installed'] = 'Installed' if SourceStreamlink.is_installed() else 'Not Installed'
             from .source_youtubedl import SourceYoutubedl
-            arg['is_youtubedl_installed'] = 'Installed' if SourceYoutubedl.is_installed() else 'Not Installed'
+            arg['tmp_is_youtubedl_installed'] = 'Installed' if SourceYoutubedl.is_installed() else 'Not Installed'
             return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
         elif sub == 'list':
             

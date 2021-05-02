@@ -53,7 +53,7 @@
     {{ macros.m_tab_content_start('youtubedl', false) }}
       {{ macros.setting_checkbox('use_youtubedl', 'Youtube-dl', value=arg['use_youtubedl'], desc=None) }}
       <div id="use_youtubedl_div" class="collapse">
-        {{ macros.info_text_and_buttons('is_youtubedl_installed', '설치상태', [['youtubedl_install_btn', '설치']], value=arg['is_youtubedl_installed'], desc=['자주 업데이트 되기 때문에 이상이 있을 경우 다시 설치하시기 바랍니다.']) }}
+        {{ macros.info_text_and_buttons('tmp_is_youtubedl_installed', '설치상태', [['youtubedl_install_btn', '설치']], value=arg['tmp_is_youtubedl_installed'], desc=['자주 업데이트 되기 때문에 이상이 있을 경우 다시 설치하시기 바랍니다.']) }}
         {{ macros.setting_checkbox('youtubedl_use_proxy', 'Proxy 사용', value=arg['youtubedl_use_proxy'], desc=['KBO채널은 외국에서 시청 불가능합니다. 국내 IP로 인식할 수 있는 Proxy 주소를 입력합니다.', 'URL을 얻을 때만 사용합니다.']) }}
         {{ macros.setting_input_text('youtubedl_proxy_url', 'Proxy URL', value=arg['youtubedl_proxy_url'], desc=['참고 : https://www.proxynova.com/proxy-server-list/country-kr']) }}
         {{ macros.setting_input_textarea('youtubedl_list', '채널 목록', desc=['형식 : 채널ID|채널이름|채널URL', '채널별 구분자 Enter', '채널 URL이 YOUTUBE_숫자인 경우 실시간 채널 목록에서 숫자에 해당하는 영상을 재생합니다. 1~100.'], value=arg['youtubedl_list'], row='20') }}
@@ -63,7 +63,7 @@
     {{ macros.m_tab_content_start('streamlink', false) }}
       {{ macros.setting_checkbox('use_streamlink', 'streamlink', value=arg['use_streamlink'], desc=None) }}
       <div id="use_streamlink_div" class="collapse">
-        {{ macros.info_text_and_buttons('is_streamlink_installed', '설치상태', [['streamlink_install_btn', '설치']], value=arg['is_streamlink_installed'], desc=['도커 지원.', '그외 환경에서는 pip 명령만 보내나 컴파일이 필요한 모듈이 있어 설치가 실패할 수도 있습니다.', '이 경우는 각자 알아서 설치하시기 바랍니다.']) }}
+        {{ macros.info_text_and_buttons('tmp_is_streamlink_installed', '설치상태', [['streamlink_install_btn', '설치']], value=arg['tmp_is_streamlink_installed'], desc=['도커 지원.', '그외 환경에서는 pip 명령만 보내나 컴파일이 필요한 모듈이 있어 설치가 실패할 수도 있습니다.', '이 경우는 각자 알아서 설치하시기 바랍니다.']) }}
         {{ macros.setting_input_text('streamlink_quality', 'streamlink 화질', col='3', value=arg['streamlink_quality']) }}
         {{ macros.setting_input_textarea('streamlink_list', '채널 목록', desc=['형식 : 채널ID|채널이름|채널URL', '채널별 구분자 Enter'], value=arg['streamlink_list'], row='20') }}
       </div>
@@ -110,8 +110,8 @@
 <script type="text/javascript">
 var package_name = 'klive';
 var current_data = null;
-var youtubedl_installed = "{{ arg['is_youtubedl_installed'] }}"  == 'Installed' ? true : false;
-var streamlink_installed = "{{ arg['is_streamlink_installed'] }}"  == 'Installed' ? true : false;
+var youtubedl_installed = "{{ arg['tmp_is_youtubedl_installed'] }}"  == 'Installed' ? true : false;
+var streamlink_installed = "{{ arg['tmp_is_streamlink_installed'] }}"  == 'Installed' ? true : false;
 
 
 $(document).ready(function(){
