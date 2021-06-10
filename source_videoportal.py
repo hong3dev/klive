@@ -89,13 +89,21 @@ class SourceVideoportal(SourceBase):
             #http://211.170.95.74/vod/74701.m3u8?VOD_RequestID=v050-0202-0606-1212-0000-979720200704125108;LTE;720p;WIFI
             
             #if mode == 'url':
+            #if mode == 'web_play':
+                
             if True:
                 data = requests.get(url).text
+
+                logger.warning(data)
                 # 밴드 선택
                 rate_list = re.compile(r'http(.*?)$', re.MULTILINE).finditer(data)
                 for rate in rate_list:
                     url = rate.group(0)
                     #return 'return_after_read', url
+
+                    logger.warning(data)
+
+
                     return 'redirect', url
             else:
                 return 'redirect', url

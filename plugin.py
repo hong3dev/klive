@@ -209,7 +209,7 @@ def api(sub):
             source = request.args.get('s')
             source_id = request.args.get('i')
             quality = request.args.get('q')
-            #logger.debug('m:%s, s:%s, i:%s', mode, source, source_id)
+            logger.debug('m:%s, s:%s, i:%s', mode, source, source_id)
             action, ret = LogicKlive.get_url(source, source_id, quality, mode)
             #logger.debug('action:%s, url:%s', action, ret)
             
@@ -259,6 +259,7 @@ def api(sub):
             if action == 'redirect':
                 return redirect(ret, code=302)
             elif action == 'return_after_read':
+                logger.warning('return_after_read')
                 data = LogicKlive.get_return_data(source, source_id, ret, mode)
                 #logger.debug('Data len : %s', len(data))
                 return data, 200, {'Content-Type': 'application/vnd.apple.mpegurl'}
@@ -296,9 +297,18 @@ def api(sub):
                 proxies={"https": proxy, 'http':proxy}
             url = py_urllib.unquote(url)
             #logger.debug('REDIRECT:%s', url)
+            #logger.warning(f"redirect : {url}")
+            # 2021-06-03
+            """
             res = requests.get(url, proxies=proxies)
             data = res.content
             return data, 200, {'Content-Type':res.headers['Content-Type']}
+            """
+            headers = {'Connection' : 'keep-alive'}
+            r = requests.get(url, headers=headers, stream=True, proxies=proxies)
+            rv = Response(r.iter_content(chunk_size=1024), r.status_code, content_type=r.headers['Content-Type'], direct_passthrough=True)
+            return rv
+
         except Exception as e: 
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())

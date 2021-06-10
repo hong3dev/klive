@@ -26,6 +26,12 @@
   <div id="list_div"></div>
 </div>
 
+<form name="playform">
+  <input type="hidden" id="play_title" name="play_title">
+  <input type="hidden" id="play_source_src"  name="play_source_src">
+  <input type="hidden" id="play_source_type"  name="play_source_type">
+</form>
+
 <script type="text/javascript">
 var package_name = "{{arg['package_name']}}"
 var current_data = null;
@@ -67,12 +73,28 @@ $("body").on('click', '#web_play_btn', function(e) {
   source = $(this).data('source')
   source_id = $(this).data('source_id')
   video_id = "video_"+source+"_"+source_id
-  url = ddns + "/"+package_name+"/api/url.m3u8?m=web_play&s=" + source + "&i=" + source_id
+  url = ddns + "/"+package_name+"/api/url.m3u8?m=web_play&s=" + source + "&i=" + source_id;
   if (auth_use_apikey) {
     url = url + '&apikey=' + apikey
   } 
   error_count = 0
-  play_video(video_id, url, true)
+  //play_video(video_id, url, true)
+
+  var form = document.playform;
+  var popupWidth = 980;
+  var leftPos = screen.width - popupWidth;
+  var target = 'klive_'+source+'_'+source_id;
+  window.open('', target, "location=no, directories=no,resizable=no,status=no,toolbar=no,menubar=no,width=" + popupWidth + ", height=560, top=100, left=" + leftPos);
+  form.action = '/system/videojs';
+  form.method = "post";
+  form.target = target;
+  
+  $('#play_title').val($(this).data('title'));
+  $('#play_source_src').val(url);
+  $('#play_source_type').val('application/x-mpegURL');
+  form.submit();
+
+
 });
 
 function stop_video(by_user) {
@@ -158,9 +180,9 @@ function make_list(data) {
     }
     
     tmp = ''
-    if (data[i].source == 'wavve' || data[i].source == 'tving'){// || data[i].source == 'everyon') {
-      tmp += m_button('web_play_btn', 'Play', [{'key':'source', 'value':data[i].source}, {'key':'source_id', 'value':data[i].source_id}]);
-    }
+    //if (data[i].source == 'wavve' || data[i].source == 'tving'){// || data[i].source == 'everyon') {
+      tmp += m_button('web_play_btn', 'Play', [{'key':'source', 'value':data[i].source}, {'key':'source_id', 'value':data[i].source_id}, {'key':'title', 'value':data[i].title}]);
+    //}
     url = ddns + "/"+package_name+"/api/url.m3u8?m=url&s=" + data[i].source + "&i=" + data[i].source_id
     if (auth_use_apikey) {
       url = url + '&apikey=' + apikey
