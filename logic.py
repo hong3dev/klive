@@ -50,6 +50,11 @@ class Logic(object):
         'tving_vod_page' : '5',
         'tving_include_drm' : 'False',
 
+        'use_seezn' : 'False',
+        'seezn_quality' : 'HD',
+        'seezn_include_drm': 'False',
+        'seezn_cookie': '',
+
         'use_videoportal' : 'True',
 
         'use_everyon' : 'True',

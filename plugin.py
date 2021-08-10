@@ -305,7 +305,7 @@ def api(sub):
             return data, 200, {'Content-Type':res.headers['Content-Type']}
             """
             headers = {'Connection' : 'keep-alive'}
-            r = requests.get(url, headers=headers, stream=True, proxies=proxies)
+            r = requests.get(url, headers=headers, stream=True, proxies=proxies, verify=False)
             rv = Response(r.iter_content(chunk_size=1024), r.status_code, content_type=r.headers['Content-Type'], direct_passthrough=True)
             return rv
 
