@@ -54,6 +54,7 @@ class Logic(object):
         'seezn_quality' : 'HD',
         'seezn_include_drm': 'False',
         'seezn_cookie': '',
+        'seezn_adult': 'False',
 
         'use_videoportal' : 'True',
 

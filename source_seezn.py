@@ -41,6 +41,10 @@ class SourceSeezn(SourceBase):
             ret = []
             data = requests.get('https://api.seezntv.com/svc/menu/app6/api/epg_chlist?category_id=1', headers=cls.default_header).json()
             for item in data['data']['list'][0]['list_channel']:
+                # 성인채널
+                if item['adult_yn'] == 'Y' and ModelSetting.get('seezn_adult') == 'False':
+                    continue
+
                 c = ModelChannel(cls.source_name, item['ch_no'], item['service_ch_name'], item['ch_image_list'], (item['type']!='AUDIO_MUSIC'))
                 if item['cj_drm_yn'] == 'Y':
                     c.is_drm_channel = True
