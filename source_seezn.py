@@ -30,6 +30,8 @@ class SourceSeezn(SourceBase):
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
                 'Accept': 'application/json',
             }
+
+    ch_quality = dict()
     
     @classmethod
     def prepare(cls, source_id, source_pw, arg):
@@ -44,6 +46,8 @@ class SourceSeezn(SourceBase):
                 # 성인채널
                 if item['adult_yn'] == 'Y' and ModelSetting.get('seezn_adult') == 'False':
                     continue
+                # bitrate_info
+                cls.ch_quality[item['ch_no']] = item['bit_rate_info'].split(',')
 
                 c = ModelChannel(cls.source_name, item['ch_no'], item['service_ch_name'], item['ch_image_list'], (item['type']!='AUDIO_MUSIC'))
                 if item['cj_drm_yn'] == 'Y':
@@ -62,31 +66,25 @@ class SourceSeezn(SourceBase):
     @classmethod
     def get_url(cls, source_id, quality, mode):
         try:
-            qual = {'FHD': '4000', 'HD': '2000', 'SD': '1000'}
-            quality = qual[ModelSetting.get('seezn_quality')]
-            
-            # 오디오 채널은 고정일까? 매번 가져오는건 비효율..
-            # audio_ch = requests.get('https://api.seezntv.com/svc/menu/app6/api/epg_chlist?category_id=12&istest=0', headers=cls.default_header).json()['data']['list'][0]['list_channel']
-            # audio_chs = [ch['ch_no'] for ch in audio_ch]
-            audio_chs = ['701', '332', '718', '720', '716', '731', '729', '335', '733', '734', '732', '330', '333', '717', '730', '721', '722', '465', '466']
-            if source_id in audio_chs:
-                quality = '128'
+            q = {'FHD': '4000', 'HD': '2000', 'SD': '1000'}
+            # 일부 홈쇼핑 채널은 최대 2000이라고 리턴하지만 실제 4000도 재생됨
+            # quality = f'{q[quality]}' if q[quality] in cls.ch_quality[source_id] else f'{cls.ch_quality[source_id][0]}'
+            quality = f'{q[quality]}' if len(cls.ch_quality[source_id]) != 1 else f'{cls.ch_quality[source_id][0]}'
             
             pre = ''
             if len(ModelSetting.get('seezn_cookie')) < 1:
-                logger.debug('no cookie')
+                logger.debug('no valid cookie')
                 pre = 'pre'
 
             live_url = f'https://api.seezntv.com/svc/menu/app6/api/epg_{pre}play?ch_no={source_id}&bit_rate=S&bit_rate_option={quality}&protocol=https&istest=0'
-            
             header = {'x-omas-response-cookie': ModelSetting.get('seezn_cookie')}
+            
             ch_info = requests.get(live_url, headers=header).json()
             if ch_info['meta']['code'] == '200':
                 url = ch_info['data']['live_url']
             else:
                 logger.debug(ch_info['meta'])
                 pass
-                # live_url = ''
 
             if mode == 'web_play':
                 return 'return_after_read', url
@@ -100,24 +98,36 @@ class SourceSeezn(SourceBase):
     def get_return_data(cls, source_id, url, mode):
         try:
             req_data = requests.get(url, verify=False, allow_redirects=False)
-            if req_data.status_code != 200:
+            # logger.debug(req_data.status_code)
+            if req_data.status_code == 301: # 시즌 제공 채널
                 redirect_url = req_data.headers['location']
-                data1 = requests.get(redirect_url, verify=False).text
-                data1 = re.sub('\w+.m3u8', redirect_url.split('.m3u8')[0]+'.m3u8', data1)
+                data = requests.get(redirect_url, verify=False).text
+                data1 = re.sub('\w+.m3u8', redirect_url.split('.m3u8')[0]+'.m3u8', data)
                 if mode == 'web_play':
                     data1 = cls.change_redirect_data(data1)
-                return data1
-            else:
+                    return data1
+
+            elif req_data.status_code == 302: # 홈쇼핑 및 기타
+                redirect_url = req_data.headers['location']
+                data = requests.get(redirect_url).text
+                data1 = re.sub('segments', redirect_url.split('live')[0]+'live/segments', data)
+                if mode == 'web_play':
+                    data1 = cls.change_redirect_data(data1)
+                    return data1
+
+            elif req_data.status_code == 200: # CJ 제공 채널
                 data1 = req_data.text
                 url2 = re.sub('\w+.m3u8', url.split('playlist.m3u8')[0]+'chunklist.m3u8', data1[data1.find('chunklist'):])
                 data2 = requests.get(url2).text
                 data3 = re.sub('media-', url2.split('chunklist.m3u8')[0]+'media-', data2)
                 if mode == 'web_play':
                     data1 = cls.change_redirect_data(data3)
-                return data3
-            # logger.debug(url)
+                    return data3
+            logger.debug(url)
             return url
+
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
+
         return req_data.text
