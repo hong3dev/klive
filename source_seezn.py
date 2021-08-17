@@ -98,8 +98,7 @@ class SourceSeezn(SourceBase):
                 url = ch_info['data']['live_url']
             else:
                 # 재생권한 없음, 해외 IP 등등
-                logger.debug(ch_info['meta'])
-                pass
+                raise Exception(ch_info['meta'])
 
             if mode == 'web_play':
                 return 'return_after_read', url
