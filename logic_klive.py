@@ -31,6 +31,7 @@ from .plugin import logger, package_name
 from .model import ModelSetting, ModelChannel, ModelCustom
 from .source_wavve import SourceWavve
 from .source_tving import SourceTving
+from .source_seezn import SourceSeezn
 from .source_videoportal import SourceVideoportal
 from .source_everyon import SourceEveryon
 from .source_streamlink import SourceStreamlink
@@ -76,6 +77,8 @@ class LogicKlive(object):
                 LogicKlive.source_list['tving'] = SourceTving('tving', ModelSetting.get('tving_id'), ModelSetting.get('tving_pw'), '0')
             if ModelSetting.get_bool('use_videoportal'):
                 LogicKlive.source_list['videoportal'] = SourceVideoportal('videoportal', None, None, None)
+            if ModelSetting.get_bool('use_seezn'):
+                LogicKlive.source_list['seezn'] = SourceSeezn('seezn', None, None, None)
             #if ModelSetting.get_bool('use_everyon'):
             #    LogicKlive.source_list['everyon'] = SourceEveryon('everyon', None, None, None)
             if ModelSetting.get_bool('use_kbs'):
@@ -136,7 +139,7 @@ class LogicKlive(object):
             arg = Util.db_list_to_dict(setting_list)
             for x in total_channel_list:
                 #if (arg['use_wavve'] == 'True' and x.wavve_id is not None) or (arg['use_tving'] == 'True' and x.tving_id is not None) or (arg['use_videoportal'] == 'True' and x.videoportal_id is not None) or (arg['use_everyon'] == 'True' and x.everyon_id is not None):
-                if (arg['use_wavve'] == 'True' and x.wavve_id is not None) or (arg['use_tving'] == 'True' and x.tving_id is not None) or (arg['use_videoportal'] == 'True' and x.videoportal_id is not None):
+                if (arg['use_wavve'] == 'True' and x.wavve_id is not None) or (arg['use_tving'] == 'True' and x.tving_id is not None) or (arg['use_videoportal'] == 'True' and x.videoportal_id is not None) or (arg['use_seezn'] == 'True' and x.seezn_id is not None):
                     tmp.append(x)
             
             # 이 목록에 없는 방송은 넣는다.. 스포츠, 라디오?
@@ -150,7 +153,7 @@ class LogicKlive(object):
                 for t in tmp2:
                     #logger.debug(t)
                     try:
-                        if (ch.source == 'wavve' and ch.source_id == t['wavve_id']) or (ch.source == 'tving' and ch.source_id == t['tving_id']) or (ch.source == 'videoportal' and ch.source_id == t['videoportal_id']) or (ch.source == 'everyon' and ch.source_id == t['everyon_id']):
+                        if (ch.source == 'wavve' and ch.source_id == t['wavve_id']) or (ch.source == 'tving' and ch.source_id == t['tving_id']) or (ch.source == 'videoportal' and ch.source_id == t['videoportal_id']) or (ch.source == 'seezn' and ch.source_id == t['seezn_id']): #or (ch.source == 'everyon' and ch.source_id == t['everyon_id']):
                             find = True
                             break
                     except:
@@ -164,9 +167,10 @@ class LogicKlive(object):
                     entity['wavve_name'] = entity['wavve_id'] = entity['wavve_number'] = None
                     entity['tving_name'] = entity['tving_id'] = entity['tving_number'] = None
                     entity['videoportal_name'] = entity['videoportal_id'] = entity['videoportal_number'] = None
+                    entity['seezn_name'] = entity['seezn_id'] = entity['seezn_number'] = None
                     entity['everyon_name'] = entity['everyon_id'] = entity['everyon_number'] = None
 
-                    if ch.source in ['wavve', 'tving', 'videoportal']:#, 'everyon']:
+                    if ch.source in ['wavve', 'tving', 'videoportal', 'seezn']:#, 'everyon']:
                         entity['%s_id' % ch.source] = ch.source_id
                         entity['%s_name' % ch.source] = ch.title
                         entity['category'] = ch.source
@@ -193,6 +197,8 @@ class LogicKlive(object):
                     x['auto'] = 'tving'
                 elif arg['use_videoportal'] == 'True' and x['videoportal_id'] is not None:
                     x['auto'] = 'videoportal'
+                elif arg['use_seezn'] == 'True' and x['seezn_id'] is not None:
+                    x['auto'] = 'seezn'
                 #elif arg['use_everyon'] == 'True' and x['everyon_id'] is not None:
                 #    x['auto'] = 'everyon'
 
@@ -208,6 +214,10 @@ class LogicKlive(object):
                     entity = db.session.query(ModelCustom).filter(ModelCustom.source == 'videoportal').filter(ModelCustom.source_id == x['videoportal_id']).first()
                     if entity is not None:
                         x['videoportal_number'] = entity.number
+                if x['seezn_id'] is not None:
+                    entity = db.session.query(ModelCustom).filter(ModelCustom.source == 'seezn').filter(ModelCustom.source_id == x['seezn_id']).first()
+                    if entity is not None:
+                        x['seezn_number'] = entity.number
                 #if x['everyon_id'] is not None:
                 #    entity = db.session.query(ModelCustom).filter(ModelCustom.source == 'everyon').filter(ModelCustom.source_id == x['everyon_id']).first()
                 #    if entity is not None:
@@ -233,6 +243,8 @@ class LogicKlive(object):
                     quality = ModelSetting.get('wavve_quality')
                 elif source == 'tving':
                     quality = ModelSetting.get('tving_quality')
+                elif source == 'seezn':
+                    quality = ModelSetting.get('seezn_quality')
             return LogicKlive.source_list[source].get_url(source_id, quality, mode)
         except Exception as e: 
             logger.error('Exception:%s', e)
