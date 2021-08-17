@@ -55,6 +55,8 @@ class Logic(object):
         'seezn_include_drm': 'False',
         'seezn_cookie': '',
         'seezn_adult': 'False',
+        'seezn_use_proxy': 'False',
+        'seezn_proxy_url': '',
 
         'use_videoportal' : 'True',
 

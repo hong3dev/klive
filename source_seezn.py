@@ -43,13 +43,14 @@ class SourceSeezn(SourceBase):
             ret = []
             data = requests.get('https://api.seezntv.com/svc/menu/app6/api/epg_chlist?category_id=1', headers=cls.default_header).json()
             for item in data['data']['list'][0]['list_channel']:
-                # 성인채널
+                # 성인 채널 여부
                 if item['adult_yn'] == 'Y' and ModelSetting.get('seezn_adult') == 'False':
                     continue
                 # bitrate_info
                 cls.ch_quality[item['ch_no']] = item['bit_rate_info'].split(',')
 
                 c = ModelChannel(cls.source_name, item['ch_no'], item['service_ch_name'], item['ch_image_list'], (item['type']!='AUDIO_MUSIC'))
+                # DRM 채널 여부
                 if item['cj_drm_yn'] == 'Y':
                     c.is_drm_channel = True
 
@@ -71,6 +72,7 @@ class SourceSeezn(SourceBase):
             # quality = f'{q[quality]}' if q[quality] in cls.ch_quality[source_id] else f'{cls.ch_quality[source_id][0]}'
             quality = f'{q[quality]}' if len(cls.ch_quality[source_id]) != 1 else f'{cls.ch_quality[source_id][0]}'
             
+            # 로그인 정보 없을시 epg_prepaly로, 3~4분 가량 재생됨
             pre = ''
             if len(ModelSetting.get('seezn_cookie')) < 1:
                 logger.debug('no valid cookie')
@@ -79,10 +81,18 @@ class SourceSeezn(SourceBase):
             live_url = f'https://api.seezntv.com/svc/menu/app6/api/epg_{pre}play?ch_no={source_id}&bit_rate=S&bit_rate_option={quality}&protocol=https&istest=0'
             header = {'x-omas-response-cookie': ModelSetting.get('seezn_cookie')}
             
-            ch_info = requests.get(live_url, headers=header).json()
+            # 시즌 프록시
+            if ModelSetting.get('seezn_use_proxy') == 'True':
+                proxies = {'http': ModelSetting.get('seezn_proxy_url'), 'https': ModelSetting.get('seezn_proxy_url')}
+            else:
+                proxies = None
+            
+            ch_info = requests.get(live_url, headers=header, proxies=proxies).json()
+            
             if ch_info['meta']['code'] == '200':
                 url = ch_info['data']['live_url']
             else:
+                # 재생권한 없음, 해외 IP 등등
                 logger.debug(ch_info['meta'])
                 pass
 
@@ -103,26 +113,24 @@ class SourceSeezn(SourceBase):
                 redirect_url = req_data.headers['location']
                 data = requests.get(redirect_url, verify=False).text
                 data1 = re.sub('\w+.m3u8', redirect_url.split('.m3u8')[0]+'.m3u8', data)
-                if mode == 'web_play':
-                    data1 = cls.change_redirect_data(data1)
-                    return data1
+                
+                return data1
 
             elif req_data.status_code == 302: # 홈쇼핑 및 기타
                 redirect_url = req_data.headers['location']
                 data = requests.get(redirect_url).text
                 data1 = re.sub('segments', redirect_url.split('live')[0]+'live/segments', data)
-                if mode == 'web_play':
-                    data1 = cls.change_redirect_data(data1)
-                    return data1
+
+                return data1
 
             elif req_data.status_code == 200: # CJ 제공 채널
                 data1 = req_data.text
                 url2 = re.sub('\w+.m3u8', url.split('playlist.m3u8')[0]+'chunklist.m3u8', data1[data1.find('chunklist'):])
                 data2 = requests.get(url2).text
                 data3 = re.sub('media-', url2.split('chunklist.m3u8')[0]+'media-', data2)
-                if mode == 'web_play':
-                    data1 = cls.change_redirect_data(data3)
-                    return data3
+
+                return data3
+
             logger.debug(url)
             return url
 

@@ -50,6 +50,10 @@
         {{ macros.setting_checkbox('seezn_include_drm', 'DRM 채널 포함', value=arg['seezn_include_drm'], desc=['On : OCN 등 DRM 채널 포함.']) }}
         {{ macros.setting_checkbox('seezn_adult', '성인 채널 포함', value=arg['seezn_adult'], desc=['On : 성인 채널 포함.']) }}
         {{ macros.setting_input_text('seezn_cookie', 'cookie', value=arg['seezn_cookie'], desc=['SSOValidate=xxxx']) }}
+        {{ macros.setting_checkbox('seezn_use_proxy', 'Proxy 사용', value=arg['seezn_use_proxy'], desc=['URL을 얻을 때만 사용합니다.']) }}
+        <div id="seezn_use_proxy_div" class="collapse">
+          {{ macros.setting_input_text('seezn_proxy_url', 'Proxy URL', value=arg['seezn_proxy_url'], desc=['']) }}
+        </div>
         {{ macros.m_hr() }}
       </div>
     {{ macros.m_tab_content_end() }} 
@@ -132,6 +136,7 @@ $(document).ready(function(){
   use_collapse("use_wavve")
   use_collapse("use_tving")
   use_collapse("use_seezn")
+  use_collapse("seezn_use_proxy")
   use_collapse("use_streamlink")
   use_collapse("use_youtubedl")
   use_collapse("use_navertv")
@@ -142,6 +147,7 @@ $(document).ready(function(){
 $('#use_wavve').change(function() {use_collapse('use_wavve');});
 $('#use_tving').change(function() {use_collapse('use_tving');});
 $('#use_seezn').change(function() {use_collapse('use_seezn');});
+$('#seezn_use_proxy').change(function() {use_collapse('seezn_use_proxy');});
 $('#use_streamlink').change(function() {use_collapse('use_streamlink');});
 $('#use_youtubedl').change(function() {use_collapse('use_youtubedl');});
 $('#use_navertv').change(function() {use_collapse('use_navertv');});
