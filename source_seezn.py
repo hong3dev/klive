@@ -87,6 +87,7 @@ class SourceSeezn(SourceBase):
             header = {'x-omas-response-cookie': ModelSetting.get('seezn_cookie')}
             
             # 시즌 프록시
+            # 재생 주소 가져올 때만 사용
             if ModelSetting.get('seezn_use_proxy') == 'True':
                 proxies = {'http': ModelSetting.get('seezn_proxy_url'), 'https': ModelSetting.get('seezn_proxy_url')}
             else:
@@ -104,6 +105,8 @@ class SourceSeezn(SourceBase):
 
             if mode == 'web_play':
                 return 'return_after_read', url
+            
+            # 해외 서버, 해외 클라이언트에서도 url만 가져오면 redirect로 재생 가능 확인
             return 'redirect', url
 
         except Exception as e:
