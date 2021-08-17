@@ -51,7 +51,7 @@ class Logic(object):
         'tving_include_drm' : 'False',
 
         'use_seezn' : 'False',
-        'seezn_quality' : 'HD',
+        'seezn_quality' : 'FHD',
         'seezn_include_drm': 'False',
         'seezn_cookie': '',
         'seezn_adult': 'False',

@@ -55,6 +55,8 @@ class SourceSeezn(SourceBase):
                 # DRM 채널 여부
                 if item['cj_drm_yn'] == 'Y':
                     c.is_drm_channel = True
+                    if ModelSetting.get('seezn_include_drm') == 'False':
+                        continue
 
                 c.current = urllib.parse.unquote_plus(item['program_name'])
                 ret.append(c)
