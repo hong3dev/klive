@@ -32,10 +32,12 @@ class SourceSeezn(SourceBase):
             }
 
     ch_quality = dict()
+
     
     @classmethod
     def prepare(cls, source_id, source_pw, arg):
         pass
+
 
     @classmethod
     def get_channel_list(cls):
@@ -64,6 +66,7 @@ class SourceSeezn(SourceBase):
         # logger.debug(ret)
         return ret
 
+
     @classmethod
     def get_url(cls, source_id, quality, mode):
         try:
@@ -90,6 +93,8 @@ class SourceSeezn(SourceBase):
             ch_info = requests.get(live_url, headers=header, proxies=proxies).json()
             
             if ch_info['meta']['code'] == '200':
+                if ch_info['data']['drm_token'] != "":
+                    return cls.get_drm_data(ch_info)
                 url = ch_info['data']['live_url']
             else:
                 # 재생권한 없음, 해외 IP 등등
@@ -103,6 +108,7 @@ class SourceSeezn(SourceBase):
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
+
 
     @classmethod
     def get_return_data(cls, source_id, url, mode):
@@ -139,3 +145,32 @@ class SourceSeezn(SourceBase):
             logger.error(traceback.format_exc())
 
         return req_data.text
+
+
+    def get_drm_data(ch_info):
+        try:
+            data = dict()
+            ret = {}
+            ret['uri'] = ch_info['data']['live_url']+'manifest.mpd'
+            ret['drm_scheme'] = 'widevine'
+            ret['drm_license_uri'] = 'https://otm.drmkeyserver.com/widevine_license'
+            ret['drm_key_request_properties'] = {
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
+                'origin': 'https://www.seezntv.com',
+                'referer': 'https://www.seezntv.com/',
+                'sec-ch-ua': '"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'cross-site',
+                'AcquireLicenseAssertion' : ch_info['data']['drm_token'],
+                }
+
+            data['play_info'] = ret
+            # logger.debug(data)
+            return data
+
+
+        except Exception as exception:
+            logger.error('Exception:%s', exception)
+            logger.error(traceback.format_exc())
