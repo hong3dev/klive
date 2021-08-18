@@ -61,7 +61,7 @@ class SourceVideoportal(SourceBase):
 
                 
                 if item.findtext('service_id') in ['628', '629', '743']:
-                    if not SystemModelSetting.get_bool('videoportal_adult'):
+                    if not ModelSetting.get_bool('videoportal_adult'):
                         continue
 
                 c = ModelChannel(cls.source_name, 

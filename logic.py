@@ -60,6 +60,7 @@ class Logic(object):
         'seezn_proxy_url': '',
 
         'use_videoportal' : 'True',
+        'videoportal_adult' : 'False',
 
         'use_everyon' : 'True',
 
