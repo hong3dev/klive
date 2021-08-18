@@ -305,6 +305,9 @@ class LogicKlive(object):
                     if mc.source == 'tving':
                         import framework.tving.api as Tving
                         mc.is_drm_channel = Tving.is_drm_channel(mc.source_id)
+                    if mc.source == 'seezn':
+                        # Seezn DRM 채널 추가 시 수정 필요
+                        mc.is_drm_channel = (mc.source_id in ['801'])
                     db.session.add(mc)
                     count += 1
             LogicKlive.reset_epg_time()
