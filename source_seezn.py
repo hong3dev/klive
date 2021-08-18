@@ -28,7 +28,33 @@ from .source_base import SourceBase
 class SourceSeezn(SourceBase):
     default_header = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
+                'Host': 'api.seezntv.com',
+                'sec-ch-ua': '"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
+                'sec-ch-ua-mobile': '?0',
+                'HTTP_CLIENT_IP': 'undefined',
+                'X-APP-VERSION': '92.0.4515.131',
+                'X-OS-VERSION': 'NT 10.0',
+                'X-OS-TYPE': 'Windows',
+                'X-DEVICE-MODEL': 'Chrome',
                 'Accept': 'application/json',
+                'Access-Control-Allow-Headers': 'Authentication',
+                'Origin': 'https://www.seezntv.com',
+                'Sec-Fetch-Site': 'same-site',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Dest': 'empty',
+                'Referer': 'https://www.seezntv.com/'
+            }
+
+    default_header2 = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
+                'sec-ch-ua': '"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
+                'sec-ch-ua-mobile': '?0',
+                'Accept': '*/*',
+                'Origin': 'https://www.seezntv.com',
+                'Sec-Fetch-Site': 'same-site',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Dest': 'empty',
+                'Referer': 'https://www.seezntv.com/'
             }
 
     ch_quality = dict()
@@ -42,8 +68,13 @@ class SourceSeezn(SourceBase):
     @classmethod
     def get_channel_list(cls):
         try:
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')[:-3]
+            header = cls.default_header
+            header['timestamp'] = timestamp
+            header['transactionid'] = timestamp+'000000000000001'
+            # logger.debug(header)
             ret = []
-            data = requests.get('https://api.seezntv.com/svc/menu/app6/api/epg_chlist?category_id=1', headers=cls.default_header).json()
+            data = requests.get('https://api.seezntv.com/svc/menu/app6/api/epg_chlist?category_id=1', headers=header).json()
             for item in data['data']['list'][0]['list_channel']:
                 # 성인 채널 여부
                 if item['adult_yn'] == 'Y' and ModelSetting.get('seezn_adult') == 'False':
@@ -72,6 +103,11 @@ class SourceSeezn(SourceBase):
     @classmethod
     def get_url(cls, source_id, quality, mode):
         try:
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')[:-3]
+            header = cls.default_header
+            header['timestamp'] = timestamp
+            header['transactionid'] = timestamp+'000000000000001'
+            
             q = {'FHD': '4000', 'HD': '2000', 'SD': '1000'}
             # 일부 홈쇼핑 채널은 최대 2000이라고 리턴하지만 실제 4000도 재생됨
             # quality = f'{q[quality]}' if q[quality] in cls.ch_quality[source_id] else f'{cls.ch_quality[source_id][0]}'
@@ -82,9 +118,11 @@ class SourceSeezn(SourceBase):
             if len(ModelSetting.get('seezn_cookie')) < 1:
                 logger.debug('no valid cookie')
                 pre = 'pre'
+            else:
+                header['x-omas-response-cookie'] = ModelSetting.get('seezn_cookie')
 
             live_url = f'https://api.seezntv.com/svc/menu/app6/api/epg_{pre}play?ch_no={source_id}&bit_rate=S&bit_rate_option={quality}&protocol=https&istest=0'
-            header = {'x-omas-response-cookie': ModelSetting.get('seezn_cookie')}
+            # logger.debug(header)
             
             # 시즌 프록시
             # 재생 주소 가져올 때만 사용
@@ -117,18 +155,22 @@ class SourceSeezn(SourceBase):
     @classmethod
     def get_return_data(cls, source_id, url, mode):
         try:
-            req_data = requests.get(url, verify=False, allow_redirects=False)
+            header = cls.default_header2
+            header['Sec-Fetch-Site'] = 'cross-site'
+
+            req_data = requests.get(url, verify=False, allow_redirects=False, headers=header)
             # logger.debug(req_data.status_code)
             if req_data.status_code == 301: # 시즌 제공 채널
                 redirect_url = req_data.headers['location']
-                data = requests.get(redirect_url, verify=False).text
+                data = requests.get(redirect_url, verify=False, headers=header).text
                 data1 = re.sub('\w+.m3u8', redirect_url.split('.m3u8')[0]+'.m3u8', data)
                 
                 return data1
 
             elif req_data.status_code == 302: # 홈쇼핑 및 기타
+                header['Sec-Fetch-Site'] = 'same-site'
                 redirect_url = req_data.headers['location']
-                data = requests.get(redirect_url).text
+                data = requests.get(redirect_url, headers=header).text
                 data1 = re.sub('segments', redirect_url.split('live')[0]+'live/segments', data)
 
                 return data1
@@ -136,7 +178,7 @@ class SourceSeezn(SourceBase):
             elif req_data.status_code == 200: # CJ 제공 채널
                 data1 = req_data.text
                 url2 = re.sub('\w+.m3u8', url.split('playlist.m3u8')[0]+'chunklist.m3u8', data1[data1.find('chunklist'):])
-                data2 = requests.get(url2).text
+                data2 = requests.get(url2, headers=header).text
                 data3 = re.sub('media-', url2.split('chunklist.m3u8')[0]+'media-', data2)
 
                 return data3
