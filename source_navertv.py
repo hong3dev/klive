@@ -46,7 +46,7 @@ class SourceNavertv(SourceBase):
                 if len(tmp2) < 3:
                     continue
                 c = ModelChannel(cls.source_name, tmp2[0], tmp2[1], None, True)
-                quality = '1080' if len(tmp2) == 3 else tmp2[3]
+                quality = '720' if len(tmp2) == 3 else tmp2[3]
                 NavertvItem(tmp2[0], tmp2[1], tmp2[2], quality)
                 c.current = ''
                 ret.append(c)
@@ -61,7 +61,16 @@ class SourceNavertv(SourceBase):
             logger.debug('source_id:%s, quality:%s, mode:%s', source_id, quality, mode)
             target_url = NavertvItem.ch_list[source_id].url
             from framework.common.ott import OTTSupport
-            url = OTTSupport.get_naver_url(target_url, NavertvItem.ch_list[source_id].quality)
+
+            if quality == 'default':
+                quality = NavertvItem.ch_list[source_id].quality
+            elif quality == 'SD':
+                quality = '480'
+            elif quality == 'FHD':
+                quality = '1080'
+
+
+            url = OTTSupport.get_naver_url(target_url, quality)
             if mode == 'web_play':
                 return 'return_after_read', url 
             return 'redirect', url

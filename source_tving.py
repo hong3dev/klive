@@ -55,14 +55,20 @@ class SourceTving(SourceBase):
     @classmethod
     def get_url(cls, source_id, quality, mode):
         try:
+            if quality == 'FHD':
+                quality = 'HD'
+                
             quality = Tving.get_quality_to_tving(quality)
             c_id = source_id
             if source_id.startswith('V'):
                 c_id = source_id[1:]
             
             if Tving.is_drm_channel(source_id):
+                logger.info('is_drm')
                 return Tving.get_stream_info_by_web('live', c_id, quality)
             else:
+                logger.info('is_drm')
+                
                 data, url = Tving.get_episode_json(c_id, quality, is_live=True)
 
                 if source_id.startswith('V'):
@@ -178,6 +184,9 @@ class SourceTving(SourceBase):
         try:
             c_id = req.args.get('contentid')
             quality = Tving.get_quality_to_tving(ModelSetting.get('tving_quality'))
+            if quality == 'FHD':
+                quality = 'HD'
+                
             data, url = Tving.get_episode_json(c_id, quality)
             return redirect(url, code=302)
         except Exception as e:

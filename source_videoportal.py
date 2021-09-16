@@ -12,7 +12,7 @@ import datetime
 import xml.etree.ElementTree as ET
 import re
 
-# third-party
+# third-party 123
 from sqlitedict import SqliteDict
 import requests
 # sjva 공용
@@ -84,27 +84,48 @@ class SourceVideoportal(SourceBase):
             live_server1 = 'http://1.214.67.74:80/'
             live_file_name = '%sHN.m3u8' % source_id
             stamp = str(datetime.datetime.today().strftime('%Y%m%d%H%M%S'))
-            url = '%s%s?VOD_RequestID=v2M2-0101-1010-7272-5050-0000%s;LTE;1080p;WIFI&APPNAME=hdtv&ALBUM_ID=%s&ma=D0:17:C2:CE:D7:A1' % (live_server1, live_file_name, stamp, source_id)
+            url = '%s%s?VOD_RequestID=v2M2-0101-1010-7272-5050-0000%s;720p;LTE;WIFI&APPNAME=hdtv&ALBUM_ID=%s&ma=D0:17:C2:CE:D7:A1' % (live_server1, live_file_name, stamp, source_id)
             #http://211.170.95.74/vod/68201.m3u8?VOD_RequestID=v050-0202-0606-1212-0000-979720200704125108;LTE;720p;WIFI
             #http://211.170.95.74/vod/74701.m3u8?VOD_RequestID=v050-0202-0606-1212-0000-979720200704125108;LTE;720p;WIFI
             
             #if mode == 'url':
             #if mode == 'web_play':
                 
+
             if True:
+                logger.warning(url)
                 data = requests.get(url).text
 
                 logger.warning(data)
                 # 밴드 선택
                 rate_list = re.compile(r'http(.*?)$', re.MULTILINE).finditer(data)
-                for rate in rate_list:
-                    url = rate.group(0)
-                    #return 'return_after_read', url
-
-                    logger.warning(data)
 
 
-                    return 'redirect', url
+
+                rate_cnt = len(list(rate_list))
+                quality_list = {'SD':0, 'HD':1, 'default':1, 'FHD':2}
+                quanlity_idx = rate_cnt - quality_list[quality] - 1
+                if quanlity_idx < 0:
+                    quanlity_idx = 0
+
+                rate_list = re.compile(r'http(.*?)$', re.MULTILINE).finditer(data)
+                rate = list(rate_list)[2]
+
+
+
+                url = rate.group(0)
+                return 'redirect', url
+
+
+                # for rate in rate_list:
+                #     url = rate.group(0)
+                #     #return 'return_after_read', url
+                #     return 'redirect', url
+                
+
+
+                    
+
             else:
                 return 'redirect', url
             return 'redirect', url

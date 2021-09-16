@@ -162,6 +162,15 @@ def ajax(sub):
             #if new != old:
             LogicKlive.get_channel_list(from_site=True)
             return jsonify(ret)
+
+
+        elif sub == 'get_channel_number_list':
+            with open('/root/epg2xml/Channel.json') as json_file:
+                json_data = json.load(json_file)
+             
+            return json_data
+
+
         elif sub == 'channel_list':
             ret = LogicKlive.channel_list2(request)
             return jsonify(ret)
@@ -210,8 +219,11 @@ def api(sub):
             source_id = request.args.get('i')
             quality = request.args.get('q')
             logger.debug('m:%s, s:%s, i:%s', mode, source, source_id)
+            logger.debug('mode:%s, source:%s, source_id:%s, quality:%s', mode, source, source_id, quality)
             action, ret = LogicKlive.get_url(source, source_id, quality, mode)
-            #logger.debug('action:%s, url:%s', action, ret)
+
+            logger.warning('action:%s, ret:%s', action, ret)
+            
             
             if mode == 'plex':
                 #new_url = '%s/klive/api/url.m3u8?m=web_play&s=%s&i=%s&q=%s' % (SystemModelSetting.get('ddns'), source, source_id, quality)
@@ -286,7 +298,8 @@ def api(sub):
         else:
             return data
     elif sub == 'm3utvh':
-        return LogicKlive.get_m3u(for_tvh=True, m3u_format=request.args.get('format'), group=request.args.get('group'))
+        # return LogicKlive.get_m3u(for_tvh=True, m3u_format=request.args.get('format'), group=request.args.get('group'))
+        return LogicKlive.get_m3u(for_tvh=True, m3u_format=request.args.get('format'), group=request.args.get('group'), quality=request.args.get('quality'))
     elif sub == 'redirect':
         try:
             url = request.args.get('url')

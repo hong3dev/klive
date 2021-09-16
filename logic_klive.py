@@ -206,26 +206,49 @@ class LogicKlive(object):
                     entity = db.session.query(ModelCustom).filter(ModelCustom.source == 'wavve').filter(ModelCustom.source_id == x['wavve_id']).first()
                     if entity is not None:
                         x['wavve_number'] = entity.number
+                        x['klive_custom_id'] = entity.id
+                    else:
+                        x['klive_custom_id'] = None
+
                 if x['tving_id'] is not None:
                     entity = db.session.query(ModelCustom).filter(ModelCustom.source == 'tving').filter(ModelCustom.source_id == x['tving_id']).first()
                     if entity is not None:
                         x['tving_number'] = entity.number
+                        x['klive_custom_id'] = entity.id
+                    else:
+                        x['klive_custom_id'] = None
+
                 if x['videoportal_id'] is not None:
                     entity = db.session.query(ModelCustom).filter(ModelCustom.source == 'videoportal').filter(ModelCustom.source_id == x['videoportal_id']).first()
                     if entity is not None:
                         x['videoportal_number'] = entity.number
+                        x['klive_custom_id'] = entity.id
+                    else:
+                        x['klive_custom_id'] = None
+
                 if x['seezn_id'] is not None:
                     entity = db.session.query(ModelCustom).filter(ModelCustom.source == 'seezn').filter(ModelCustom.source_id == x['seezn_id']).first()
                     if entity is not None:
                         x['seezn_number'] = entity.number
+                        x['klive_custom_id'] = entity.id
+                    else:
+                        x['klive_custom_id'] = None
+
                 #if x['everyon_id'] is not None:
                 #    entity = db.session.query(ModelCustom).filter(ModelCustom.source == 'everyon').filter(ModelCustom.source_id == x['everyon_id']).first()
                 #    if entity is not None:
                 #        x['everyon_number'] = entity.number
+
+                
                 if 'user_source' in x:
                     entity = db.session.query(ModelCustom).filter(ModelCustom.source == x['user_source']).filter(ModelCustom.source_id == x['user_source_id']).first()
                     if entity is not None:
                         x['user_source_number'] = entity.number
+
+
+
+                
+                        
             return tmp2
         except Exception as e: 
             logger.error('Exception:%s', e)
@@ -239,12 +262,15 @@ class LogicKlive(object):
             if LogicKlive.source_list is None:
                 LogicKlive.channel_load_from_site()
             if quality is None or quality == 'default':
+                logger.warning('LogicKlive.source_list Yes')
+                
                 if source == 'wavve':
                     quality = ModelSetting.get('wavve_quality')
                 elif source == 'tving':
                     quality = ModelSetting.get('tving_quality')
                 elif source == 'seezn':
                     quality = ModelSetting.get('seezn_quality')
+            
             return LogicKlive.source_list[source].get_url(source_id, quality, mode)
         except Exception as e: 
             logger.error('Exception:%s', e)
@@ -284,32 +310,74 @@ class LogicKlive(object):
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
 
+    @staticmethod
+    def isSetFormData(data):
+        return data not in ['undefined', 'null', '']
+        
     @staticmethod 
     def custom_save(req):
         try:
             ret = {}
-            db.session.query(ModelCustom).delete()
+
+            ## ==============================================================
+            ##
+            ## **	필요한 것만 삭제
+            ##
+            ## ==============================================================
+            # db.session.query(ModelCustom).delete()
+            listKliveCustomId = []
+            for key, value in req.form.items():
+                _listData = key.split('|')
+                if LogicKlive.isSetFormData(_listData[0]):
+                    listKliveCustomId.append(_listData[0])
+
+            logger.debug('custom_save.listKliveCustomId')
+            logger.debug(listKliveCustomId)
+            
+            db.session.query(ModelCustom).filter(ModelCustom.id.notin_(listKliveCustomId)).delete()
+
+
             count = 0
             for key, value in req.form.items():
                 #logger.debug('Key:%s Value:%s %s', key, value, [key])
                 if value == "True":
                     mc = ModelCustom()
-                    mc.epg_id, mc.epg_name, mc.group, mc.source, mc.source_id, mc.title, number = key.split('|')
-                    mc.epg_name = u'%s' % mc.epg_name
-                    mc.title = u'%s' % mc.title
-                    mc.group = u'%s' % mc.group
-                    if number == 'undefined' or number == 'null':
-                        mc.number = 0
+                    klive_custom_id, epg_id, epg_name, mc.group, mc.source, mc.source_id, mc.title, number = key.split('|')
+
+                    logger.debug('custom_save.for loop')
+                    logger.debug(klive_custom_id)
+
+                    if LogicKlive.isSetFormData(klive_custom_id):
+                        logger.debug('row: %s' % klive_custom_id)
+
+                        mc = db.session.query(ModelCustom).filter(ModelCustom.id == klive_custom_id).with_for_update().one()
+                        
                     else:
-                        mc.number = int(number)
+                        mc.title = u'%s' % mc.title
+                        mc.group = u'%s' % mc.group
+                        if LogicKlive.isSetFormData(number):
+                            mc.number = int(number)
+                            
+                        else:
+                            mc.number = 0
+                        
+
+
+                    mc.epg_id = epg_id
+                    mc.epg_name = u'%s' % epg_name
+
                     if mc.source == 'tving':
                         import framework.tving.api as Tving
                         mc.is_drm_channel = Tving.is_drm_channel(mc.source_id)
                     if mc.source == 'seezn':
                         # Seezn DRM 채널 추가 시 수정 필요
                         mc.is_drm_channel = (mc.source_id in ['801'])
+                        
+
                     db.session.add(mc)
                     count += 1
+
+
             LogicKlive.reset_epg_time()
             db.session.commit()
             ret['ret'] = 'success'
@@ -359,6 +427,9 @@ class LogicKlive(object):
                         mc.number = int(value)
                     elif tmp[2] == 'group':
                         mc.group = u'%s' % value
+                    elif tmp[2] == 'title':
+                        mc.title = u'%s' % value
+
             db.session.commit()            
             LogicKlive.reset_epg_time()
             return LogicKlive.get_saved_custom()
@@ -392,7 +463,7 @@ class LogicKlive(object):
             logger.error(traceback.format_exc())
 
     @staticmethod
-    def get_m3u(for_tvh=False, m3u_format=None, group=None, call=None):
+    def get_m3u(for_tvh=False, m3u_format=None, group=None, call=None, quality=None):
         try:
             #logger.debug(m3u_format)
             from system.model import ModelSetting as SystemModelSetting
@@ -407,7 +478,20 @@ class LogicKlive(object):
             saved_channeld_list = query.all()
             
             for c in saved_channeld_list:
-                url = '%s/%s/api/url.m3u8?m=url&s=%s&i=%s&q=%s' % (ddns, package_name, c.source, c.source_id, c.quality)
+                
+                if quality is None:
+                    quality = c.quality
+                    tvg_name = c.title
+                elif quality != 'default' and quality != 'DEFAULT':
+                    tvg_name = '%s - %s' % (c.title, quality.upper())
+                else:
+                    tvg_name = c.title
+                
+                tvg_name = tvg_name.replace(' - DEFAULT', '').replace(' - FHD', '')
+                
+
+
+                url = '%s/%s/api/url.m3u8?m=url&s=%s&i=%s&q=%s' % (ddns, package_name, c.source, c.source_id, quality)
                 if c.is_drm_channel:
                     if call == 'kodi':
                         url = url.replace('url.m3u8', 'url.strm')
@@ -416,20 +500,24 @@ class LogicKlive(object):
                 if apikey is not None:
                     url += '&apikey=%s' % apikey
                 if for_tvh:
+                    logger.warn('for_tvh')
                     url = 'pipe://%s -loglevel quiet -i "%s" -c copy -metadata service_provider=sjva_klive -metadata service_name="%s" -c:v copy -c:a aac -b:a 128k -f mpegts -tune zerolatency pipe:1' % ('ffmpeg', url, c.title)
+                    
 
                 import epg
                 ins = epg.ModelEpgMakerChannel.get_instance_by_name(c.epg_name)
                 icon = '' if ins is None else ins.icon
                 if icon is None:
                     icon = c.icon
-                tvg_name = c.title
+                
                 if m3u_format == '1':
                     tvg_name = '%s. %s' % (str(c.number).zfill(3), c.title)
                 group_name = c.group
                 if group is not None:
                     group_name = '' if group == 'EMPTY' else group
-                m3u += M3U_FORMAT % (c.source+'|' + c.source_id, tvg_name, icon, group_name, c.number, c.number, c.title, url)
+                m3u += M3U_FORMAT % (c.source+'|' + c.source_id, c.title, icon, group_name, c.number, c.number, tvg_name, url)
+            logger.warn(m3u)
+
             return m3u
         except Exception as e: 
             logger.error('Exception:%s', e)

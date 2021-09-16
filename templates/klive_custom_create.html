@@ -1,162 +1,224 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div>
-  {{ macros.m_button_group([['custom_load_btn', '저장 목록 읽기'], ['custom_auto_btn', '자동 설정'], ['custom_reset_btn', '모두 해제'], ['custom_save_btn', '저장']])}}
-  {{ macros.m_row_start('0') }}
-  {{ macros.m_row_end() }}
-
-  {{ macros.m_hr_head_top() }}
-  {{ macros.m_row_start('0') }}
-  {{ macros.m_col(2,  macros.m_strong('Title')) }}
-  {{ macros.m_col(2,  macros.m_strong('웨이브')) }}
-  {{ macros.m_col(2,  macros.m_strong('티빙')) }}
-  {{ macros.m_col(2,  macros.m_strong('비디오포털')) }}
-  {% if arg['show_seezn'] == 'True' %}
-  {{ macros.m_col(2,  macros.m_strong('시즌')) }}
-  {% else %}
-  {{ macros.m_col(2) }}
-  {% endif %}
-  {{ macros.m_col(2,  macros.m_strong('유저')) }}
-  {{ macros.m_row_end() }}
-  {{ macros.m_hr_head_bottom() }}
+  {{ macros.m_button_group([['custom_load_btn', '저장 목록 읽기'],
+  ['custom_auto_btn', '자동 설정'], ['custom_reset_btn', '모두 해제'],
+  ['custom_save_btn', '저장']])}} {{ macros.m_row_start('0') }} {{
+  macros.m_row_end() }} {{ macros.m_hr_head_top() }} {{ macros.m_row_start('0')
+  }} {{ macros.m_col(2, macros.m_strong('Title')) }} {{ macros.m_col(2,
+  macros.m_strong('웨이브')) }} {{ macros.m_col(2, macros.m_strong('티빙')) }}
+  {{ macros.m_col(2, macros.m_strong('비디오포털')) }} {% if arg['show_seezn']
+  == 'True' %} {{ macros.m_col(2, macros.m_strong('시즌')) }} {% else %} {{
+  macros.m_col(2) }} {% endif %} {{ macros.m_col(2, macros.m_strong('유저')) }}
+  {{ macros.m_row_end() }} {{ macros.m_hr_head_bottom() }}
   <form id="custom_form" name="custom_form">
-  <div id="list_div"></div>
+    <div id="list_div"></div>
   </form>
 </div>
 
 <script type="text/javascript">
-var package_name = "{{arg['package_name']}}";
-var current_data = null;
-var ddns = "{{arg['ddns']}}"
-var apikey = "{{arg['auth_apikey']}}"
-var auth_use_apikey = ("{{arg['auth_use_apikey']}}" == 'True')
+  var package_name = "{{arg['package_name']}}";
+  var current_data = null;
+  var ddns = "{{arg['ddns']}}";
+  var apikey = "{{arg['auth_apikey']}}";
+  var auth_use_apikey = "{{arg['auth_use_apikey']}}" == "True";
 
-
-$(document).ready(function(){
-  $.ajax({
-    url: '/' + package_name + '/ajax/custom',
-    type: "POST", 
-    cache: false,
-    data: {},
-    dataType: "json",
-    success: function (data) {
-      current_data = data;
-      make_list(data, 'saved')
-    }
+  $(document).ready(function () {
+    $.ajax({
+      url: "/" + package_name + "/ajax/custom",
+      type: "POST",
+      cache: false,
+      data: {},
+      dataType: "json",
+      success: function (data) {
+        current_data = data;
+        make_list(data, "saved");
+      },
+    });
   });
-});
 
-$("body").on('click', '#custom_save_btn', function(e){
-  e.preventDefault();
-  var formData = get_formdata('#custom_form');
-  $.ajax({
-    url: '/' + package_name + '/ajax/custom_save',
-    type: "POST", 
-    cache: false,
-    data:formData,
-    dataType: "json",
-    success: function (data) {
-      if (data.ret == 'success') {
-        $.notify('<strong>'+data.data+'개 채널을 저장하였습니다.</strong>', {
-          type: 'success'
-        });
-        $.ajax({
-          url: '/' + package_name + '/ajax/custom',
-          type: "POST", 
-          cache: false,
-          data: {},
-          dataType: "json",
-          success: function (data) {
-            current_data = data;
-            make_list(data, 'saved')
-          }
-        });
-      } else {
-        $.notify('<strong>실패</strong><br>'+data.data, {
-          type: 'warning'
-        });
-      }
-    }
-  });
-});
-
-$("body").on('click', '#custom_reset_btn', function(e){
-  e.preventDefault();
-  make_list(current_data, 'reset')
-});
-
-$("body").on('click', '#custom_auto_btn', function(e){
-  e.preventDefault();
-  make_list(current_data, 'auto')
-});
-
-$("body").on('click', '#custom_load_btn', function(e){
-  e.preventDefault();
-  make_list(current_data, 'saved')
-});
-
-function make_list(ret, how) {
-  //console.log(ret)
-  str = '';
-  data = ret.list
-  var site_use = [(ret.setting.use_wavve=='True'), (ret.setting.use_tving=='True'), (ret.setting.use_videoportal=='True'), (ret.setting.use_seezn=='True'), (ret.setting.use_everyon=='True')];
-  for (i in data) {
-    //str += m_row_start_hover(0);
-    str += m_row_start_hover();
-    tmp = '' + (parseInt(i)+1) + ' ' + data[i].name
-    //str += m_col(1, parseInt(i)+1);
-    //tmp = '<br><img src="' + data[i].icon + '" height="30px">'
-    //tmp = data[i].name
-    str += m_col(2, tmp);
-    
-    var site = [
-      ['wavve', data[i].wavve_name, data[i].wavve_id, data[i].wavve_number],
-      ['tving', data[i].tving_name, data[i].tving_id, data[i].tving_number],
-      ['videoportal', data[i].videoportal_name, data[i].videoportal_id, data[i].videoportal_number],
-      ['seezn', data[i].seezn_name, data[i].seezn_id, data[i].seezn_number],
-      ['user_source', data[i].user_source_name, data[i].user_source_id, data[i].user_source_number]
-    ]
-
-
-    for (j in site) {
-      if ((site[j][1] != null && site_use[j]) || (j == 4 && data[i].user_source != null)) {
-        source_name = site[j][0]
-        if (j == 4) source_name = data[i].user_source
-        
-        tmp_id = data[i].id + '|' + data[i].name+'|' + data[i].category + '|' + source_name +'|' + site[j][2] + '|' + site[j][1] + '|' + site[j][3]
-        //console.log(tmp_id)
-        if (how == 'auto') {
-          tmp_id = data[i].id + '|' + data[i].name+'|' + data[i].category + '|' + source_name +'|' + site[j][2] + '|' + site[j][1] + '|' + '0'
-          if (source_name == data[i].auto || j == 3) {
-            tmp = '<label class="checkbox-inline"><input type="checkbox" name="'+tmp_id+'" checked>'+site[j][1]+'</label><br>'
-          } else {
-            tmp = '<label class="checkbox-inline"><input type="checkbox" name="'+tmp_id +'">'+site[j][1]+'</label><br>'
-          }
-        } else if (how == 'saved') {
-          //console.log(site[j])
-          if (site[j][3] != null) {
-            tmp = '<label class="checkbox-inline"><input type="checkbox" name="'+tmp_id+'" checked>'+site[j][1]+'(' +site[j][3] +')'+'</label><br>'
-          } else {
-            tmp = '<label class="checkbox-inline"><input type="checkbox" name="'+tmp_id +'">'+site[j][1]+'</label><br>'
-          }
+  $("body").on("click", "#custom_save_btn", function (e) {
+    e.preventDefault();
+    var formData = get_formdata("#custom_form");
+    $.ajax({
+      url: "/" + package_name + "/ajax/custom_save",
+      type: "POST",
+      cache: false,
+      data: formData,
+      dataType: "json",
+      success: function (data) {
+        if (data.ret == "success") {
+          $.notify(
+            "<strong>" + data.data + "개 채널을 저장하였습니다.</strong>",
+            {
+              type: "success",
+            }
+          );
+          $.ajax({
+            url: "/" + package_name + "/ajax/custom",
+            type: "POST",
+            cache: false,
+            data: {},
+            dataType: "json",
+            success: function (data) {
+              current_data = data;
+              make_list(data, "saved");
+            },
+          });
         } else {
-          tmp = '<label class="checkbox-inline"><input type="checkbox" name="'+tmp_id +'">'+site[j][1]+'</label><br>'
+          $.notify("<strong>실패</strong><br>" + data.data, {
+            type: "warning",
+          });
         }
-        url = ddns + "/klive/api/url.m3u8?m=url&s=" + source_name + "&i=" + site[j][2]
-        if (auth_use_apikey) url = url + '&apikey=' + apikey
-        tmp2 = m_button('global_link_btn', 'Open', [{'key':'url', 'value':url}]);
-        tmp2 = m_button_group(tmp2)
-        str += m_col(2, tmp+tmp2);
-      } else {
-        str += m_col(2, '');
+      },
+    });
+  });
+
+  $("body").on("click", "#custom_reset_btn", function (e) {
+    e.preventDefault();
+    make_list(current_data, "reset");
+  });
+
+  $("body").on("click", "#custom_auto_btn", function (e) {
+    e.preventDefault();
+    make_list(current_data, "auto");
+  });
+
+  $("body").on("click", "#custom_load_btn", function (e) {
+    e.preventDefault();
+    make_list(current_data, "saved");
+  });
+
+  function make_list(ret, how) {
+    //console.log(ret)
+    str = "";
+    data = ret.list;
+    var site_use = [
+      ret.setting.use_wavve == "True",
+      ret.setting.use_tving == "True",
+      ret.setting.use_videoportal == "True",
+      ret.setting.use_seezn == "True",
+      ret.setting.use_everyon == "True",
+    ];
+    for (i in data) {
+      //str += m_row_start_hover(0);
+      str += m_row_start_hover();
+      tmp = "" + (parseInt(i) + 1) + " " + data[i].name;
+      //str += m_col(1, parseInt(i)+1);
+      //tmp = '<br><img src="' + data[i].icon + '" height="30px">'
+      //tmp = data[i].name
+      str += m_col(2, tmp);
+
+      var site = [
+        ["wavve", data[i].wavve_name, data[i].wavve_id, data[i].wavve_number],
+        ["tving", data[i].tving_name, data[i].tving_id, data[i].tving_number],
+        [
+          "videoportal",
+          data[i].videoportal_name,
+          data[i].videoportal_id,
+          data[i].videoportal_number,
+        ],
+        ["seezn", data[i].seezn_name, data[i].seezn_id, data[i].seezn_number],
+        [
+          "user_source",
+          data[i].user_source_name,
+          data[i].user_source_id,
+          data[i].user_source_number,
+        ],
+      ];
+
+      for (j in site) {
+        if (
+          (site[j][1] != null && site_use[j]) ||
+          (j == 4 && data[i].user_source != null)
+        ) {
+          source_name = site[j][0];
+          if (j == 4) source_name = data[i].user_source;
+
+          let tmp_id;
+          // rowData 의 기본 데이터
+          const __listData = [
+            data[i].klive_custom_id,
+            data[i].id,
+            data[i].name,
+            data[i].category,
+            source_name,
+            site[j][2],
+            site[j][1],
+          ];
+          if (how == "auto") {
+            // 자동 일 경우는 number를 0
+            __listData.push(0);
+            tmp_id = __listData.join("|");
+
+            if (source_name == data[i].auto || j == 3) {
+              tmp =
+                '<label class="checkbox-inline"><input type="checkbox" name="' +
+                tmp_id +
+                '" checked>' +
+                site[j][1] +
+                "</label><br>";
+            } else {
+              tmp =
+                '<label class="checkbox-inline"><input type="checkbox" name="' +
+                tmp_id +
+                '">' +
+                site[j][1] +
+                "</label><br>";
+            }
+          } else {
+            // 수동 일 경우는 number를 기존의 number로
+            __listData.push(site[j][3]);
+            tmp_id = __listData.join("|");
+
+            if (how == "saved") {
+              //console.log(site[j])
+              if (site[j][3] != null) {
+                tmp =
+                  '<label class="checkbox-inline"><input type="checkbox" name="' +
+                  tmp_id +
+                  '" checked>' +
+                  site[j][1] +
+                  "(" +
+                  site[j][3] +
+                  ")" +
+                  "</label><br>";
+              } else {
+                tmp =
+                  '<label class="checkbox-inline"><input type="checkbox" name="' +
+                  tmp_id +
+                  '">' +
+                  site[j][1] +
+                  "</label><br>";
+              }
+            } else {
+              tmp =
+                '<label class="checkbox-inline"><input type="checkbox" name="' +
+                tmp_id +
+                '">' +
+                site[j][1] +
+                "</label><br>";
+            }
+          }
+          url =
+            ddns +
+            "/klive/api/url.m3u8?m=url&s=" +
+            source_name +
+            "&i=" +
+            site[j][2];
+          if (auth_use_apikey) url = url + "&apikey=" + apikey;
+          tmp2 = m_button("global_link_btn", "Open", [
+            { key: "url", value: url },
+          ]);
+          tmp2 = m_button_group(tmp2);
+          str += m_col(2, tmp + tmp2);
+        } else {
+          str += m_col(2, "");
+        }
       }
+      str += m_row_end();
+      if (i != data.length - 1) str += m_hr(0);
     }
-    str += m_row_end();
-    if (i != data.length -1) str += m_hr(0);
+    document.getElementById("list_div").innerHTML = str;
   }
-  document.getElementById("list_div").innerHTML = str;
-}
-
-
-</script>    
+</script>
 {% endblock %}

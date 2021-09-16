@@ -123,7 +123,8 @@ class SourceSeezn(SourceBase):
 
             live_url = f'https://api.seezntv.com/svc/menu/app6/api/epg_{pre}play?ch_no={source_id}&bit_rate=S&bit_rate_option={quality}&protocol=https&istest=0'
             # logger.debug(header)
-            
+            logger.debug(live_url)
+
             # 시즌 프록시
             # 재생 주소 가져올 때만 사용
             if ModelSetting.get('seezn_use_proxy') == 'True':
@@ -132,12 +133,17 @@ class SourceSeezn(SourceBase):
                 proxies = None
             
             ch_info = requests.get(live_url, headers=header, proxies=proxies).json()
-            
+            logger.debug(ch_info)
             if ch_info['meta']['code'] == '200':
+                logger.debug('재생 권한 가능')
+                
                 if ch_info['data']['drm_token'] != "":
                     return cls.get_drm_data(ch_info)
                 url = ch_info['data']['live_url']
             else:
+
+                logger.debug('재생권한 없음, 해외 IP 등등')
+
                 # 재생권한 없음, 해외 IP 등등
                 raise Exception(ch_info['meta'])
 

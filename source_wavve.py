@@ -56,6 +56,11 @@ class SourceWavve(SourceBase):
     @classmethod
     def get_url(cls, source_id, quality, mode, retry=True):
         try:
+            if quality == 'FHD':
+                quality = 'HD'
+
+
+
             data = Wavve.streaming('live', source_id, quality)
             surl = None
             if data is not None:
@@ -146,6 +151,9 @@ class SourceWavve(SourceBase):
             contentid = req.args.get('contentid')
             contenttype = req.args.get('type')
             quality = ModelSetting.get('wavve_quality')
+            if quality == 'FHD':
+                quality = 'HD'
+                
             json_data = Wavve.streaming(contenttype, contentid, quality)
             tmp = json_data['playurl']
             #logger.debug(tmp)
